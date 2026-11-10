@@ -73,6 +73,7 @@ public class AiChatSongAdapter extends RecyclerView.Adapter<AiChatSongAdapter.So
             String coverUrl = ApiClient.resolveMediaUrl(song.getCoverImageUrl());
             Glide.with(itemView.getContext())
                     .load(coverUrl)
+                    .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.bg_card_rounded)
                     .error(R.drawable.bg_card_rounded)
                     .into(ivThumb);

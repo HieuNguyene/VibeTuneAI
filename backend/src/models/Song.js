@@ -31,5 +31,9 @@ const SongSchema = new mongoose.Schema(
 SongSchema.index({ title: 'text', lyrics: 'text' });
 SongSchema.index({ playsCount: -1 });
 SongSchema.index({ createdAt: -1 });
+SongSchema.index({ isPublic: 1, playsCount: -1 });
+SongSchema.index({ isPublic: 1, createdAt: -1 });
+SongSchema.index({ artistId: 1, isPublic: 1 });
+SongSchema.index({ genreIds: 1, isPublic: 1 });
 
 module.exports = mongoose.model('Song', SongSchema);

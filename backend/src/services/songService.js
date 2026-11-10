@@ -124,6 +124,7 @@ class SongService {
       .sort({ createdAt: -1 })
       .limit(10)
       .populate('artistId', 'name avatarUrl isVerified')
+      .populate('albumId', 'title coverImageUrl')
       .populate('genreIds', 'name colorCode')
       .lean();
 

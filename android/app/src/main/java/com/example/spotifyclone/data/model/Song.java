@@ -12,6 +12,9 @@ public class Song {
     @SerializedName("artistId")
     private Artist artistId;
 
+    @SerializedName("albumId")
+    private Album albumId;
+
     @SerializedName("duration")
     private int duration;
 
@@ -42,6 +45,15 @@ public class Song {
             return artistId.getName();
         }
         return "Nghệ sĩ";
+    }
+
+    public Album getAlbum() { return albumId; }
+
+    public String getAlbumTitle() {
+        if (albumId != null && albumId.getTitle() != null) {
+            return albumId.getTitle();
+        }
+        return "";
     }
 
     public int getDuration() { return duration; }

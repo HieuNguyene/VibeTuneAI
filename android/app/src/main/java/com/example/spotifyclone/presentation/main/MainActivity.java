@@ -47,11 +47,13 @@ public class MainActivity extends AppCompatActivity implements MusicPlayerManage
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Bù trừ an toàn thanh trạng thái (Status Bar) và thanh điều hướng (Navigation Bar)
+        // Bù trừ an toàn thanh trạng thái (Status Bar), thanh điều hướng (Navigation Bar) và Bàn phím ảo (IME)
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.mainRootLayout, (v, insets) -> {
             androidx.core.graphics.Insets bars = insets.getInsets(
                     androidx.core.view.WindowInsetsCompat.Type.systemBars() | androidx.core.view.WindowInsetsCompat.Type.displayCutout()
             );
+            androidx.core.graphics.Insets imeInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime());
+            boolean isKeyboardOpen = imeInsets.bottom > bars.bottom;
 
             android.view.ViewGroup.LayoutParams lp = binding.statusBarSpacer.getLayoutParams();
             if (lp.height != bars.top) {
@@ -59,9 +61,13 @@ public class MainActivity extends AppCompatActivity implements MusicPlayerManage
                 binding.statusBarSpacer.setLayoutParams(lp);
             }
 
-            binding.bottomNavigationContainer.setPadding(0, 0, 0, bars.bottom);
+            // Khi bàn phím ảo hiển thị (chiều cao IME vượt qua thanh điều hướng), tạm ẩn bottom nav và bù padding bàn phím
+            binding.bottomNavigationView.setVisibility(isKeyboardOpen ? View.GONE : View.VISIBLE);
+            int bottomPadding = isKeyboardOpen ? imeInsets.bottom : bars.bottom;
+            binding.bottomNavigationContainer.setPadding(0, 0, 0, bottomPadding);
             return insets;
         });
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNavigationView, (v, insets) -> insets);
         if (binding.mainRootLayout.isAttachedToWindow()) {
             androidx.core.view.ViewCompat.requestApplyInsets(binding.mainRootLayout);
         }

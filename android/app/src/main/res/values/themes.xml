@@ -33,9 +33,6 @@
         <item name="itemTextColor">@color/selector_nav_tint</item>
         <item name="itemRippleColor">@color/spotify_hover</item>
         <item name="labelVisibilityMode">labeled</item>
-        <item name="itemActiveIndicatorStyle">@null</item>
-        <item name="itemPaddingTop">6dp</item>
-        <item name="itemPaddingBottom">6dp</item>
         <item name="itemTextAppearanceActive">@style/TextAppearance.Spotify.BottomNav.Active</item>
         <item name="itemTextAppearanceInactive">@style/TextAppearance.Spotify.BottomNav.Inactive</item>
         <item name="elevation">8dp</item>

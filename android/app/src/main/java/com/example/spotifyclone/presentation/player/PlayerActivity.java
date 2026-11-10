@@ -97,6 +97,13 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
 
         MusicPlayerManager.getInstance().addListener(this);
 
+        getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                finish();
+            }
+        });
+
         extractIntentDataAndPlay();
         setupPlaybackControls();
         setupSeekBar();

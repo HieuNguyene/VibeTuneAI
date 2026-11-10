@@ -80,6 +80,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
 
             Glide.with(binding.ivSongThumb.getContext())
                     .load(ApiClient.resolveMediaUrl(song.getCoverImageUrl()))
+                    .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.bg_card_rounded)
                     .error(R.drawable.bg_card_rounded)
                     .into(binding.ivSongThumb);

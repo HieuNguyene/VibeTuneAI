@@ -65,6 +65,7 @@ public class RecentSongAdapter extends RecyclerView.Adapter<RecentSongAdapter.Re
             String imageUrl = ApiClient.resolveMediaUrl(song.getCoverImageUrl());
             Glide.with(itemView.getContext())
                     .load(imageUrl)
+                    .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.bg_card_rounded)
                     .error(R.drawable.bg_card_rounded)
                     .into(binding.ivRecentArt);

@@ -119,7 +119,7 @@
         android:layout_height="0dp"
         android:layout_marginTop="@dimen/spacing_12dp"
         android:clipToPadding="false"
-        android:paddingBottom="@dimen/spacing_32dp"
+        android:paddingBottom="84dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/layoutLibraryChips"

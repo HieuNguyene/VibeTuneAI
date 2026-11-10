@@ -75,6 +75,7 @@ public class AlbumCardAdapter extends RecyclerView.Adapter<AlbumCardAdapter.Albu
             String imageUrl = ApiClient.resolveMediaUrl(album.getCoverImageUrl());
             Glide.with(itemView.getContext())
                     .load(imageUrl)
+                    .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
                     .transform(new RoundedCorners(16))
                     .placeholder(R.drawable.bg_card_rounded)
                     .error(R.drawable.bg_card_rounded)

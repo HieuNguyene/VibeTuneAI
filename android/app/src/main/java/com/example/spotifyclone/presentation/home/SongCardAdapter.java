@@ -67,6 +67,7 @@ public class SongCardAdapter extends RecyclerView.Adapter<SongCardAdapter.SongVi
             String imageUrl = ApiClient.resolveMediaUrl(song.getCoverImageUrl());
             Glide.with(itemView.getContext())
                     .load(imageUrl)
+                    .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
                     .transform(new RoundedCorners(16))
                     .placeholder(R.drawable.bg_card_rounded)
                     .error(R.drawable.bg_card_rounded)

@@ -44,8 +44,8 @@ public class ApiClient {
             logging.setLevel(HttpLoggingInterceptor.Level.BODY);
 
             OkHttpClient client = new OkHttpClient.Builder()
-                    .connectTimeout(15, TimeUnit.SECONDS)
-                    .readTimeout(15, TimeUnit.SECONDS)
+                    .connectTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
                     .addInterceptor(chain -> {
                         Request original = chain.request();
                         Request.Builder requestBuilder = original.newBuilder();
@@ -61,10 +61,35 @@ public class ApiClient {
                     .addInterceptor(logging)
                     .build();
 
+            com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+                    .registerTypeAdapter(com.example.spotifyclone.data.model.Album.class,
+                            (com.google.gson.JsonDeserializer<com.example.spotifyclone.data.model.Album>) (json, typeOfT, context) -> {
+                                if (json.isJsonObject()) {
+                                    return new com.google.gson.Gson().fromJson(json, com.example.spotifyclone.data.model.Album.class);
+                                } else if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isString()) {
+                                    com.example.spotifyclone.data.model.Album album = new com.example.spotifyclone.data.model.Album();
+                                    album.setId(json.getAsString());
+                                    return album;
+                                }
+                                return null;
+                            })
+                    .registerTypeAdapter(com.example.spotifyclone.data.model.Artist.class,
+                            (com.google.gson.JsonDeserializer<com.example.spotifyclone.data.model.Artist>) (json, typeOfT, context) -> {
+                                if (json.isJsonObject()) {
+                                    return new com.google.gson.Gson().fromJson(json, com.example.spotifyclone.data.model.Artist.class);
+                                } else if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isString()) {
+                                    com.example.spotifyclone.data.model.Artist artist = new com.example.spotifyclone.data.model.Artist();
+                                    artist.setId(json.getAsString());
+                                    return artist;
+                                }
+                                return null;
+                            })
+                    .create();
+
             retrofit = new Retrofit.Builder()
                     .baseUrl(getBaseUrl())
                     .client(client)
-                    .addConverterFactory(GsonConverterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create(gson))
                     .build();
 
             apiService = retrofit.create(ApiService.class);

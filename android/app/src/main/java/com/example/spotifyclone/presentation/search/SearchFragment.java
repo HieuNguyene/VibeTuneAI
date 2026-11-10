@@ -198,11 +198,16 @@ public class SearchFragment extends Fragment {
     private void onSongClick(Song song) {
         if (song == null) return;
 
-        // Cập nhật MiniPlayer tại MainActivity
-        if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).updateMiniPlayerTrack(song);
+        List<Song> currentResults = searchResultAdapter.getSongs();
+        int index = currentResults != null ? currentResults.indexOf(song) : -1;
+        if (currentResults != null && !currentResults.isEmpty() && index >= 0) {
+            MusicPlayerManager.getInstance().playQueue(currentResults, index);
         } else {
             MusicPlayerManager.getInstance().playSong(song);
+        }
+
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).updateMiniPlayerVisibility(true);
         }
 
         // Mở Fullscreen Player
