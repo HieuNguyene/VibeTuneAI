@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/spotify_black">
+
+    <!-- Top Header -->
+    <LinearLayout
+        android:id="@+id/layoutAiChatHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/spotify_black"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:src="@drawable/ic_sparkle_ai"
+            app:tint="@color/spotify_green" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="AI Music Assistant"
+                android:textColor="@color/text_primary"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Trợ lý âm nhạc thông minh • Sẵn sàng"
+                android:textColor="@color/spotify_green"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btnResetChat"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Làm mới cuộc trò chuyện"
+            android:src="@android:drawable/ic_menu_rotate"
+            app:tint="@color/text_secondary" />
+
+    </LinearLayout>
+
+    <!-- Quick Prompts Horizontal Scroll -->
+    <HorizontalScrollView
+        android:id="@+id/hsvQuickPrompts"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="6dp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@id/layoutAiChatHeader">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupQuickPrompts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleLine="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipPromptChill"
+                style="@style/Widget.Spotify.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="☕ Nhạc chill thư giãn" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipPromptHot"
+                style="@style/Widget.Spotify.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔥 Top thịnh hành" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipPromptSonTung"
+                style="@style/Widget.Spotify.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🌟 Sơn Tùng M-TP" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipPromptSad"
+                style="@style/Widget.Spotify.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🌧️ Nhạc buồn tâm trạng" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipPromptFocus"
+                style="@style/Widget.Spotify.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📚 Nhạc tập trung học bài" />
+
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
+
+    <!-- Divider Line -->
+    <View
+        android:id="@+id/viewDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#1AFFFFFF"
+        app:layout_constraintTop_toBottomOf="@id/hsvQuickPrompts" />
+
+    <!-- Chat Messages RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvChatMessages"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="12dp"
+        app:layout_constraintBottom_toTopOf="@id/layoutBottomInput"
+        app:layout_constraintTop_toBottomOf="@id/viewDivider" />
+
+    <!-- Bottom Input Container -->
+    <LinearLayout
+        android:id="@+id/layoutBottomInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/spotify_black"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="12dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_chat_input"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="6dp">
+
+            <EditText
+                android:id="@+id/etChatMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:hint="Nhắn tin với AI (VD: Gợi ý nhạc chill)..."
+                android:inputType="textMultiLine|textCapSentences"
+                android:maxLines="3"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/icon_inactive"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btnSendMessage"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_circle_icon"
+            android:backgroundTint="@color/spotify_green"
+            android:contentDescription="Gửi tin nhắn"
+            android:padding="10dp"
+            android:src="@drawable/ic_send"
+            app:tint="@color/spotify_black" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

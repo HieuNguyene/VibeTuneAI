@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="64dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:paddingStart="@dimen/spacing_16dp"
+    android:paddingEnd="@dimen/spacing_12dp">
+
+    <!-- Album Art -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivSongThumb"
+        android:layout_width="@dimen/album_art_list_size"
+        android:layout_height="@dimen/album_art_list_size"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.Card"
+        tools:srcCompat="@android:drawable/ic_menu_gallery" />
+
+    <!-- Text Container -->
+    <LinearLayout
+        android:id="@+id/layoutSongText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_12dp"
+        android:layout_marginEnd="@dimen/spacing_8dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnSongFavorite"
+        app:layout_constraintStart_toEndOf="@id/ivSongThumb"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tvSongTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textAppearance="@style/TextAppearance.Spotify.Body"
+            android:textStyle="bold"
+            tools:text="Nơi Này Có Anh" />
+
+        <TextView
+            android:id="@+id/tvSongArtist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textAppearance="@style/TextAppearance.Spotify.Caption"
+            tools:text="Sơn Tùng M-TP" />
+    </LinearLayout>
+
+    <!-- Like Action -->
+    <ImageButton
+        android:id="@+id/btnSongFavorite"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Like Song"
+        android:padding="@dimen/spacing_8dp"
+        android:src="@drawable/ic_favorite_border"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnSongMore"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/text_secondary" />
+
+    <!-- Overflow Menu Action -->
+    <ImageButton
+        android:id="@+id/btnSongMore"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Song Options"
+        android:padding="@dimen/spacing_8dp"
+        android:src="@drawable/ic_more_vert"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/text_secondary" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

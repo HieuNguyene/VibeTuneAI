@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/spotify_black"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/spacing_20dp"
+        android:paddingTop="@dimen/spacing_16dp"
+        android:paddingEnd="@dimen/spacing_20dp"
+        android:paddingBottom="@dimen/spacing_32dp">
+
+        <!-- Top Header Navigation -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnProfileBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Quay lại"
+                android:padding="@dimen/spacing_12dp"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="@color/white" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_12dp"
+                android:layout_weight="1"
+                android:text="@string/profile_edit_title"
+                android:textAppearance="@style/TextAppearance.Spotify.Headline"
+                android:textSize="20sp" />
+        </LinearLayout>
+
+        <!-- Avatar Area -->
+        <FrameLayout
+            android:layout_width="110dp"
+            android:layout_height="110dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/spacing_20dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivProfileAvatar"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:background="@color/spotify_elevated"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_person"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.Pill" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/btnChangeAvatarBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:contentDescription="Đổi Avatar"
+                app:backgroundTint="@color/spotify_green"
+                app:fabCustomSize="36dp"
+                app:maxImageSize="18dp"
+                app:srcCompat="@drawable/ic_camera"
+                app:tint="@color/black" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvAvatarHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:text="@string/profile_avatar_hint"
+            android:textAppearance="@style/TextAppearance.Spotify.Caption"
+            android:textColor="@color/text_secondary" />
+
+        <!-- Membership Status Badge -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/spacing_12dp"
+            android:background="@drawable/bg_pill_active"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="4dp">
+
+            <TextView
+                android:id="@+id/tvProfileBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SPOTIFY PREMIUM"
+                android:textColor="@color/black"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="@dimen/spacing_20dp"
+            android:layout_marginBottom="@dimen/spacing_16dp"
+            android:background="@color/divider_color" />
+
+        <!-- SECTION: Basic Information -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Thông tin cá nhân"
+            android:textAppearance="@style/TextAppearance.Spotify.Title"
+            android:textSize="16sp" />
+
+        <!-- Display Name -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilDisplayName"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_12dp"
+            android:hint="Tên hiển thị"
+            android:textColorHint="@color/text_secondary"
+            app:boxBackgroundColor="@color/spotify_surface"
+            app:boxCornerRadiusBottomEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusBottomStart="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopStart="@dimen/corner_radius_card"
+            app:boxStrokeColor="@color/spotify_green"
+            app:hintTextColor="@color/spotify_green">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDisplayName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Email (Read-only) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilEmail"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_12dp"
+            android:hint="Địa chỉ Email (Cố định)"
+            android:textColorHint="@color/icon_inactive"
+            app:boxBackgroundColor="@color/spotify_elevated"
+            app:boxCornerRadiusBottomEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusBottomStart="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopStart="@dimen/corner_radius_card"
+            app:boxStrokeColor="@color/spotify_stroke">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:inputType="textEmailAddress"
+                android:textColor="@color/text_secondary"
+                android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Username (Read-only) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilUsername"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_12dp"
+            android:hint="Tên người dùng (Username)"
+            android:textColorHint="@color/icon_inactive"
+            app:boxBackgroundColor="@color/spotify_elevated"
+            app:boxCornerRadiusBottomEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusBottomStart="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopStart="@dimen/corner_radius_card"
+            app:boxStrokeColor="@color/spotify_stroke">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etUsername"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:inputType="text"
+                android:textColor="@color/text_secondary"
+                android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Button: Save Profile Changes -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSaveProfile"
+            style="@style/Widget.Spotify.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="@dimen/spacing_20dp"
+            android:text="@string/profile_save_changes" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="@dimen/spacing_24dp"
+            android:layout_marginBottom="@dimen/spacing_16dp"
+            android:background="@color/divider_color" />
+
+        <!-- SECTION: Audio Quality Setting -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/audio_quality"
+            android:textAppearance="@style/TextAppearance.Spotify.Title"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:id="@+id/btnAudioQualitySelector"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="@dimen/spacing_12dp"
+            android:background="@drawable/bg_card_rounded"
+            android:backgroundTint="@color/spotify_surface"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/spacing_16dp"
+            android:paddingEnd="@dimen/spacing_16dp">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:contentDescription="Chất lượng âm thanh"
+                android:src="@drawable/ic_devices"
+                app:tint="@color/spotify_green" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chất lượng phát trực tuyến"
+                    android:textAppearance="@style/TextAppearance.Spotify.Body"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tvAudioQualityValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Rất cao (320kbps)"
+                    android:textAppearance="@style/TextAppearance.Spotify.Caption"
+                    android:textColor="@color/spotify_green" />
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="Chọn"
+                android:src="@drawable/ic_chevron_down"
+                app:tint="@color/text_secondary" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="@dimen/spacing_24dp"
+            android:layout_marginBottom="@dimen/spacing_16dp"
+            android:background="@color/divider_color" />
+
+        <!-- SECTION: Security / Change Password -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/profile_change_password"
+            android:textAppearance="@style/TextAppearance.Spotify.Title"
+            android:textSize="16sp" />
+
+        <!-- Current Password -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilCurrentPassword"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_12dp"
+            android:hint="@string/profile_current_password"
+            android:textColorHint="@color/text_secondary"
+            app:boxBackgroundColor="@color/spotify_surface"
+            app:boxCornerRadiusBottomEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusBottomStart="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopStart="@dimen/corner_radius_card"
+            app:boxStrokeColor="@color/spotify_green"
+            app:endIconMode="password_toggle"
+            app:endIconTint="@color/text_secondary"
+            app:hintTextColor="@color/spotify_green">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etCurrentPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- New Password -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilNewPassword"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_12dp"
+            android:hint="@string/profile_new_password"
+            android:textColorHint="@color/text_secondary"
+            app:boxBackgroundColor="@color/spotify_surface"
+            app:boxCornerRadiusBottomEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusBottomStart="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopStart="@dimen/corner_radius_card"
+            app:boxStrokeColor="@color/spotify_green"
+            app:endIconMode="password_toggle"
+            app:endIconTint="@color/text_secondary"
+            app:helperText="Tối thiểu 8 ký tự"
+            app:helperTextTextColor="@color/text_secondary"
+            app:hintTextColor="@color/spotify_green">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNewPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Confirm New Password -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilConfirmPassword"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_12dp"
+            android:hint="@string/profile_confirm_password"
+            android:textColorHint="@color/text_secondary"
+            app:boxBackgroundColor="@color/spotify_surface"
+            app:boxCornerRadiusBottomEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusBottomStart="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopStart="@dimen/corner_radius_card"
+            app:boxStrokeColor="@color/spotify_green"
+            app:endIconMode="password_toggle"
+            app:endIconTint="@color/text_secondary"
+            app:hintTextColor="@color/spotify_green">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etConfirmPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Button: Submit Password Change -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnChangePassword"
+            style="@style/Widget.Spotify.Button.Secondary"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="@dimen/spacing_16dp"
+            android:text="@string/profile_change_password" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

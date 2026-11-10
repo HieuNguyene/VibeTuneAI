@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_sheet_rounded"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/spacing_20dp"
+    android:paddingTop="@dimen/spacing_16dp"
+    android:paddingEnd="@dimen/spacing_20dp"
+    android:paddingBottom="@dimen/spacing_24dp">
+
+    <!-- Drag Handle -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="@dimen/spacing_16dp"
+        android:background="@drawable/bg_pill_indicator"
+        android:backgroundTint="@color/text_disabled" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivAlbumCover"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.CornerSmall"
+            tools:srcCompat="@android:drawable/ic_menu_gallery" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_16dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ALBUM"
+                android:textAppearance="@style/TextAppearance.Spotify.Caption"
+                android:textColor="@color/spotify_green"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvAlbumTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Top Hits Việt Nam 2026"
+                android:textAppearance="@style/TextAppearance.Spotify.Headline"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvAlbumArtist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="@style/TextAppearance.Spotify.Body"
+                android:textColor="@color/text_secondary"
+                tools:text="Nhiều nghệ sĩ" />
+
+            <TextView
+                android:id="@+id/tvAlbumMeta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="2026 • 15 bài hát • 320 kbps HD"
+                android:textAppearance="@style/TextAppearance.Spotify.Caption" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/spacing_16dp"
+        android:layout_marginBottom="@dimen/spacing_16dp"
+        android:background="@color/divider_color" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPlayAlbum"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:backgroundTint="@color/spotify_green"
+        android:text="Phát toàn bộ album"
+        android:textAllCaps="false"
+        android:textColor="@color/spotify_black"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:cornerRadius="24dp"
+        app:icon="@drawable/ic_play_arrow"
+        app:iconTint="@color/spotify_black" />
+
+</LinearLayout>

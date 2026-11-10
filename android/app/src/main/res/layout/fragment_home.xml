@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/spotify_black"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="@dimen/spacing_32dp">
+
+        <!-- Top Header: Greeting & Profile Avatar -->
+        <TextView
+            android:id="@+id/tvGreeting"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_16dp"
+            android:layout_marginTop="@dimen/spacing_24dp"
+            android:layout_marginEnd="@dimen/spacing_16dp"
+            android:text="@string/greeting_morning"
+            android:textAppearance="@style/TextAppearance.Spotify.Headline"
+            app:layout_constraintEnd_toStartOf="@id/ivProfileAvatar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Chào buổi sáng" />
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivProfileAvatar"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="@dimen/spacing_16dp"
+            android:background="@color/spotify_elevated"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_library"
+            app:layout_constraintBottom_toBottomOf="@id/tvGreeting"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tvGreeting"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.Pill" />
+
+        <!-- Category Filter Chips -->
+        <HorizontalScrollView
+            android:id="@+id/scrollChips"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_16dp"
+            android:clipToPadding="false"
+            android:paddingStart="@dimen/spacing_16dp"
+            android:paddingEnd="@dimen/spacing_16dp"
+            android:scrollbars="none"
+            app:layout_constraintTop_toBottomOf="@id/tvGreeting">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/chipAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="@dimen/spacing_8dp"
+                    android:background="@drawable/bg_pill_active"
+                    android:gravity="center"
+                    android:paddingStart="@dimen/spacing_16dp"
+                    android:paddingEnd="@dimen/spacing_16dp"
+                    android:text="@string/chip_all"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/chipMusic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="@dimen/spacing_8dp"
+                    android:background="@drawable/bg_pill_inactive"
+                    android:gravity="center"
+                    android:paddingStart="@dimen/spacing_16dp"
+                    android:paddingEnd="@dimen/spacing_16dp"
+                    android:text="@string/chip_music"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/chipPodcasts"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_pill_inactive"
+                    android:gravity="center"
+                    android:paddingStart="@dimen/spacing_16dp"
+                    android:paddingEnd="@dimen/spacing_16dp"
+                    android:text="@string/chip_podcasts"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- Shimmer Skeleton Loading View -->
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerHomeContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_16dp"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/scrollChips"
+            app:shimmer_auto_start="true"
+            app:shimmer_base_color="@color/shimmer_base"
+            app:shimmer_highlight_color="@color/shimmer_highlight">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp">
+
+                <!-- Recently Played Skeleton Header & 2x3 Grid -->
+                <View
+                    android:layout_width="140dp"
+                    android:layout_height="18dp"
+                    android:layout_marginBottom="@dimen/spacing_12dp"
+                    android:background="@drawable/bg_shimmer_placeholder" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <include layout="@layout/item_shimmer_recent_card" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" />
+                    <include layout="@layout/item_shimmer_recent_card" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <include layout="@layout/item_shimmer_recent_card" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" />
+                    <include layout="@layout/item_shimmer_recent_card" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <include layout="@layout/item_shimmer_recent_card" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" />
+                    <include layout="@layout/item_shimmer_recent_card" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" />
+                </LinearLayout>
+
+                <!-- Section 1 Skeleton Header & Cards -->
+                <View
+                    android:layout_width="160dp"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="@dimen/spacing_24dp"
+                    android:layout_marginBottom="@dimen/spacing_16dp"
+                    android:background="@drawable/bg_shimmer_placeholder" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <include layout="@layout/item_shimmer_card" />
+                    <include layout="@layout/item_shimmer_card" />
+                    <include layout="@layout/item_shimmer_card" />
+                </LinearLayout>
+
+                <!-- Section 2 Skeleton Header & Cards -->
+                <View
+                    android:layout_width="140dp"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="@dimen/spacing_24dp"
+                    android:layout_marginBottom="@dimen/spacing_16dp"
+                    android:background="@drawable/bg_shimmer_placeholder" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <include layout="@layout/item_shimmer_card" />
+                    <include layout="@layout/item_shimmer_card" />
+                    <include layout="@layout/item_shimmer_card" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.facebook.shimmer.ShimmerFrameLayout>
+
+        <!-- Dedicated Empty State for Podcasts -->
+        <LinearLayout
+            android:id="@+id/layoutPodcastsEmptyState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/spacing_32dp"
+            android:paddingTop="56dp"
+            android:paddingEnd="@dimen/spacing_32dp"
+            android:paddingBottom="56dp"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/scrollChips">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@drawable/ic_devices"
+                app:tint="@color/icon_inactive" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_16dp"
+                android:text="Chưa có nội dung Podcast"
+                android:textAppearance="@style/TextAppearance.Spotify.Headline"
+                android:textSize="20sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_8dp"
+                android:gravity="center"
+                android:text="Hệ thống đang chuẩn bị các kênh Podcast hấp dẫn nhất. Hãy thưởng thức các danh sách âm nhạc tuyển chọn ngay bây giờ!"
+                android:textAppearance="@style/TextAppearance.Spotify.BodySecondary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBackToMusic"
+                style="@style/Widget.Spotify.Button.Primary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_24dp"
+                android:text="Khám phá âm nhạc" />
+        </LinearLayout>
+
+        <!-- Main Scrollable Content Container -->
+        <LinearLayout
+            android:id="@+id/layoutHomeContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/scrollChips">
+
+            <!-- Section: Recently Played Header & Grid (2 columns) -->
+            <TextView
+                android:id="@+id/tvRecentlyPlayedHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_marginTop="@dimen/spacing_20dp"
+                android:layout_marginEnd="@dimen/spacing_16dp"
+                android:text="Nghe gần đây"
+                android:textAppearance="@style/TextAppearance.Spotify.Title"
+                tools:text="Nghe gần đây" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvRecentlyPlayed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_12dp"
+                android:layout_marginTop="@dimen/spacing_12dp"
+                android:layout_marginEnd="@dimen/spacing_12dp"
+                android:nestedScrollingEnabled="false"
+                tools:itemCount="6"
+                tools:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                tools:listitem="@layout/item_recent_card"
+                tools:spanCount="2" />
+
+            <!-- Section 1: Made For You -->
+            <TextView
+                android:id="@+id/tvMadeForYouHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_marginTop="@dimen/spacing_24dp"
+                android:layout_marginEnd="@dimen/spacing_16dp"
+                android:text="@string/section_made_for_you"
+                android:textAppearance="@style/TextAppearance.Spotify.Title"
+                tools:text="Dành riêng cho bạn" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvMadeForYou"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_12dp"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                tools:listitem="@layout/item_song_card_square" />
+
+            <!-- Section 2: AI Recommended Mixes -->
+            <LinearLayout
+                android:id="@+id/layoutAiHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_marginTop="@dimen/spacing_24dp"
+                android:layout_marginEnd="@dimen/spacing_16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="@dimen/spacing_8dp"
+                    android:src="@drawable/ic_sparkle_ai"
+                    app:tint="@color/spotify_green" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/section_recommended"
+                    android:textAppearance="@style/TextAppearance.Spotify.Title"
+                    tools:text="Gợi ý thông minh với Gemini AI" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvAiRecommended"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_12dp"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                tools:listitem="@layout/item_song_card_square" />
+
+            <!-- Section 3: Popular Albums -->
+            <TextView
+                android:id="@+id/tvPopularAlbumsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_marginTop="@dimen/spacing_24dp"
+                android:layout_marginEnd="@dimen/spacing_16dp"
+                android:text="Album nổi tiếng"
+                android:textAppearance="@style/TextAppearance.Spotify.Title"
+                tools:text="Album nổi tiếng" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvPopularAlbums"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_12dp"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                tools:listitem="@layout/item_album_card" />
+
+            <!-- Section 4: Featured Playlists -->
+            <TextView
+                android:id="@+id/tvFeaturedPlaylistsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_marginTop="@dimen/spacing_24dp"
+                android:layout_marginEnd="@dimen/spacing_16dp"
+                android:text="Danh sách phát thịnh hành"
+                android:textAppearance="@style/TextAppearance.Spotify.Title"
+                tools:text="Danh sách phát thịnh hành" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFeaturedPlaylists"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_12dp"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                tools:listitem="@layout/item_song_card_square" />
+
+            <!-- Section 5: Popular Artists -->
+            <TextView
+                android:id="@+id/tvPopularArtistsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_marginTop="@dimen/spacing_24dp"
+                android:layout_marginEnd="@dimen/spacing_16dp"
+                android:text="@string/section_popular_artists"
+                android:textAppearance="@style/TextAppearance.Spotify.Title"
+                tools:text="Nghệ sĩ phổ biến" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvPopularArtists"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_12dp"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                tools:listitem="@layout/item_song_card_square" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>

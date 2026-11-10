@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="152dp"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="@dimen/spacing_16dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:orientation="vertical">
+
+    <!-- Square Album Art Container -->
+    <FrameLayout
+        android:layout_width="152dp"
+        android:layout_height="152dp">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivAlbumCover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/spotify_elevated"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.Card"
+            tools:srcCompat="@android:drawable/ic_menu_gallery" />
+
+        <!-- Track count badge -->
+        <TextView
+            android:id="@+id/tvAlbumTrackBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_pill_active"
+            android:backgroundTint="#CC000000"
+            android:paddingStart="8dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="2dp"
+            android:textColor="@color/white"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            tools:text="8 bài" />
+    </FrameLayout>
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tvAlbumTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="@style/TextAppearance.Spotify.Body"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        tools:text="Một Vạn Năm" />
+
+    <!-- Subtitle (Artist • Year) -->
+    <TextView
+        android:id="@+id/tvAlbumSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="@style/TextAppearance.Spotify.Caption"
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp"
+        tools:text="Vũ. • Album 2022" />
+
+</LinearLayout>

@@ -1,0 +1,152 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base Application Theme: Spotify Dark Mode -->
+    <style name="Theme.SpotifyClone" parent="Theme.Material3.Dark.NoActionBar">
+        <!-- Brand Colors -->
+        <item name="colorPrimary">@color/spotify_green</item>
+        <item name="colorPrimaryInverse">@color/spotify_black</item>
+        <item name="colorSecondary">@color/spotify_green_light</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorSurface">@color/spotify_surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+
+        <!-- Canvas Backgrounds -->
+        <item name="android:windowBackground">@color/spotify_black</item>
+        <item name="android:colorBackground">@color/spotify_black</item>
+
+        <!-- System Bars (Status & Navigation) -->
+        <item name="android:statusBarColor">@color/spotify_black</item>
+        <item name="android:navigationBarColor">@color/spotify_black</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+
+        <!-- Ripple Effect -->
+        <item name="colorControlHighlight">@color/spotify_hover</item>
+
+        <!-- Default Component Styles -->
+        <item name="bottomNavigationStyle">@style/Widget.Spotify.BottomNavigationView</item>
+    </style>
+
+    <!-- Bottom Navigation View Custom Style -->
+    <style name="Widget.Spotify.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">@color/spotify_black</item>
+        <item name="itemIconTint">@color/selector_nav_tint</item>
+        <item name="itemTextColor">@color/selector_nav_tint</item>
+        <item name="itemRippleColor">@color/spotify_hover</item>
+        <item name="labelVisibilityMode">labeled</item>
+        <item name="itemActiveIndicatorStyle">@null</item>
+        <item name="itemPaddingTop">6dp</item>
+        <item name="itemPaddingBottom">6dp</item>
+        <item name="itemTextAppearanceActive">@style/TextAppearance.Spotify.BottomNav.Active</item>
+        <item name="itemTextAppearanceInactive">@style/TextAppearance.Spotify.BottomNav.Inactive</item>
+        <item name="elevation">8dp</item>
+    </style>
+
+    <!-- Bottom Navigation Text Appearance -->
+    <style name="TextAppearance.Spotify.BottomNav.Active" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">11sp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.Spotify.BottomNav.Inactive" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">11sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <!-- Typography Styles -->
+    <style name="TextAppearance.Spotify.Display" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_size_display</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+    </style>
+
+    <style name="TextAppearance.Spotify.Headline" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_size_headline</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-bold</item>
+    </style>
+
+    <style name="TextAppearance.Spotify.Title" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_size_title</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.Spotify.Body" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_size_body</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="TextAppearance.Spotify.BodySecondary" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">@dimen/text_size_body_secondary</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="TextAppearance.Spotify.Caption" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">@dimen/text_size_caption</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <!-- Shape Appearance Overlays -->
+    <style name="ShapeAppearance.Spotify.AlbumArt" parent="ShapeAppearance.Material3.Corner.Medium">
+        <item name="cornerSize">@dimen/corner_radius_album_art</item>
+    </style>
+
+    <style name="ShapeAppearance.Spotify.Card" parent="ShapeAppearance.Material3.Corner.Medium">
+        <item name="cornerSize">@dimen/corner_radius_card</item>
+    </style>
+
+    <style name="ShapeAppearance.Spotify.CornerSmall" parent="ShapeAppearance.Material3.Corner.Small">
+        <item name="cornerSize">6dp</item>
+    </style>
+
+    <style name="ShapeAppearance.Spotify.Pill" parent="ShapeAppearance.Material3.Corner.Full">
+        <item name="cornerSize">@dimen/corner_radius_pill</item>
+    </style>
+
+    <!-- Custom Button Styles -->
+    <style name="Widget.Spotify.Button.Primary" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/spotify_green</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cornerRadius">@dimen/corner_radius_pill</item>
+        <item name="android:paddingStart">@dimen/spacing_24dp</item>
+        <item name="android:paddingEnd">@dimen/spacing_24dp</item>
+        <item name="android:paddingTop">@dimen/spacing_12dp</item>
+        <item name="android:paddingBottom">@dimen/spacing_12dp</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.Spotify.Button.Secondary" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeColor">@color/spotify_stroke</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cornerRadius">@dimen/corner_radius_pill</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="Widget.Spotify.Chip" parent="Widget.Material3.Chip.Assist">
+        <item name="chipBackgroundColor">@color/spotify_elevated</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="chipCornerRadius">@dimen/corner_radius_pill</item>
+        <item name="chipStrokeWidth">0dp</item>
+    </style>
+
+    <!-- BottomSheet Dialog Style -->
+    <style name="Theme.Spotify.BottomSheet" parent="Theme.Material3.Dark.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.Spotify.BottomSheet</item>
+        <item name="android:navigationBarColor">@color/spotify_elevated</item>
+    </style>
+
+    <style name="Widget.Spotify.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+</resources>

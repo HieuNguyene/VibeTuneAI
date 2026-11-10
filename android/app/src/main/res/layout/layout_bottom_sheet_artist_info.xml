@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_sheet_rounded"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/spacing_20dp"
+    android:paddingTop="@dimen/spacing_16dp"
+    android:paddingEnd="@dimen/spacing_20dp"
+    android:paddingBottom="@dimen/spacing_24dp">
+
+    <!-- Drag Handle -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="@dimen/spacing_16dp"
+        android:background="@drawable/bg_pill_indicator"
+        android:backgroundTint="@color/text_disabled" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivArtistAvatar"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.Pill"
+            tools:srcCompat="@android:drawable/ic_menu_gallery" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_16dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="NGHỆ SĨ ĐƯỢC XÁC MINH"
+                android:textAppearance="@style/TextAppearance.Spotify.Caption"
+                android:textColor="@color/spotify_green"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvArtistName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="@style/TextAppearance.Spotify.Headline"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                tools:text="Sơn Tùng M-TP" />
+
+            <TextView
+                android:id="@+id/tvArtistFollowers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="2.845.210 người nghe hàng tháng"
+                android:textAppearance="@style/TextAppearance.Spotify.Caption" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvArtistBio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_16dp"
+        android:ellipsize="end"
+        android:lineSpacingExtra="4dp"
+        android:maxLines="4"
+        android:text="Nghệ sĩ có sức ảnh hưởng hàng đầu trên nền tảng với hàng loạt bản hit đứng đầu các bảng xếp hạng âm nhạc Việt Nam."
+        android:textAppearance="@style/TextAppearance.Spotify.Body"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/spacing_16dp"
+        android:layout_marginBottom="@dimen/spacing_16dp"
+        android:background="@color/divider_color" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnFollowArtist"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:backgroundTint="@color/spotify_green"
+        android:text="Theo dõi nghệ sĩ"
+        android:textAllCaps="false"
+        android:textColor="@color/spotify_black"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:cornerRadius="24dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnViewAllSongs"
+        style="@style/Widget.Spotify.Button.Secondary"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:text="Xem tất cả bài hát của nghệ sĩ"
+        android:textAllCaps="false"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:cornerRadius="24dp" />
+
+</LinearLayout>

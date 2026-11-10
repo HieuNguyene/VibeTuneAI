@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Spacing & Padding System (8dp grid) -->
+    <dimen name="spacing_2dp">2dp</dimen>
+    <dimen name="spacing_4dp">4dp</dimen>
+    <dimen name="spacing_8dp">8dp</dimen>
+    <dimen name="spacing_12dp">12dp</dimen>
+    <dimen name="spacing_16dp">16dp</dimen>
+    <dimen name="spacing_20dp">20dp</dimen>
+    <dimen name="spacing_24dp">24dp</dimen>
+    <dimen name="spacing_32dp">32dp</dimen>
+    <dimen name="spacing_40dp">40dp</dimen>
+    <dimen name="spacing_48dp">48dp</dimen>
+    <dimen name="spacing_56dp">56dp</dimen>
+    <dimen name="spacing_64dp">64dp</dimen>
+
+    <!-- Corner Radii -->
+    <dimen name="corner_radius_small">4dp</dimen>
+    <dimen name="corner_radius_card">8dp</dimen>
+    <dimen name="corner_radius_album_art">12dp</dimen>
+    <dimen name="corner_radius_pill">24dp</dimen>
+    <dimen name="corner_radius_circle">100dp</dimen>
+
+    <!-- Typography Text Sizes -->
+    <dimen name="text_size_micro">10sp</dimen>
+    <dimen name="text_size_caption">12sp</dimen>
+    <dimen name="text_size_body_secondary">13sp</dimen>
+    <dimen name="text_size_body">14sp</dimen>
+    <dimen name="text_size_subheading">16sp</dimen>
+    <dimen name="text_size_title">18sp</dimen>
+    <dimen name="text_size_headline">22sp</dimen>
+    <dimen name="text_size_display">28sp</dimen>
+
+    <!-- Component Sizing -->
+    <dimen name="mini_player_height">64dp</dimen>
+    <dimen name="bottom_nav_height">64dp</dimen>
+    <dimen name="album_art_list_size">52dp</dimen>
+    <dimen name="album_art_card_size">148dp</dimen>
+    <dimen name="album_art_player_size">320dp</dimen>
+    <dimen name="btn_play_pause_size">64dp</dimen>
+    <dimen name="btn_play_pause_mini_size">36dp</dimen>
+    <dimen name="icon_standard_size">24dp</dimen>
+    <dimen name="icon_large_size">32dp</dimen>
+    <dimen name="icon_small_size">18dp</dimen>
+    <dimen name="seekbar_height">24dp</dimen>
+</resources>

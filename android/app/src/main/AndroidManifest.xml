@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Network & Audio Playback Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:name=".SpotifyApp"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_sparkle_ai"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.SpotifyClone"
+        android:usesCleartextTraffic="true">
+
+        <!-- Main Host Activity with Persistent MiniPlayer -->
+        <activity
+            android:name=".presentation.main.MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustNothing">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Fullscreen Player Activity with Dynamic Palette -->
+        <activity
+            android:name=".presentation.player.PlayerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SpotifyClone"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <!-- Login Activity -->
+        <activity
+            android:name=".presentation.auth.LoginActivity"
+            android:exported="true"
+            android:theme="@style/Theme.SpotifyClone"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Register Activity -->
+        <activity
+            android:name=".presentation.auth.RegisterActivity"
+            android:exported="true"
+            android:theme="@style/Theme.SpotifyClone"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Profile Management Activity -->
+        <activity
+            android:name=".presentation.auth.ProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SpotifyClone"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Playlist Detail Activity -->
+        <activity
+            android:name=".presentation.playlist.PlaylistDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SpotifyClone"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <!-- Artist Detail Activity -->
+        <activity
+            android:name=".presentation.artist.ArtistDetailActivity"
+            android:exported="true"
+            android:theme="@style/Theme.SpotifyClone"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <!-- Foreground Music Playback Service with Media Notification -->
+        <service
+            android:name=".service.MusicPlaybackService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
+    </application>
+
+</manifest>

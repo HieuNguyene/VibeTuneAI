@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/miniPlayerRoot"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/mini_player_height"
+    android:layout_marginStart="@dimen/spacing_8dp"
+    android:layout_marginEnd="@dimen/spacing_8dp"
+    android:layout_marginBottom="@dimen/spacing_4dp"
+    android:background="@drawable/bg_mini_player"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:visibility="gone">
+
+    <!-- Top mini progress bar (2dp) -->
+    <ProgressBar
+        android:id="@+id/miniPlayerProgressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:max="1000"
+        android:progress="350"
+        android:progressDrawable="@drawable/seekbar_progress"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Album Art Thumbnail -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivMiniAlbumArt"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="@dimen/spacing_8dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg_card_rounded"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/miniPlayerProgressBar"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.Card"
+        tools:srcCompat="@android:drawable/ic_menu_gallery" />
+
+    <!-- Song Info Container -->
+    <LinearLayout
+        android:id="@+id/layoutSongInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_12dp"
+        android:layout_marginEnd="@dimen/spacing_8dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnMiniFavorite"
+        app:layout_constraintStart_toEndOf="@id/ivMiniAlbumArt"
+        app:layout_constraintTop_toBottomOf="@id/miniPlayerProgressBar">
+
+        <TextView
+            android:id="@+id/tvMiniSongTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="marquee"
+            android:fadingEdge="horizontal"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
+            android:text="@string/default_song_title"
+            android:textAppearance="@style/TextAppearance.Spotify.Body"
+            android:textStyle="bold"
+            tools:text="Starboy (feat. Daft Punk)" />
+
+        <TextView
+            android:id="@+id/tvMiniArtistName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="@string/default_artist_name"
+            android:textAppearance="@style/TextAppearance.Spotify.Caption"
+            tools:text="The Weeknd" />
+    </LinearLayout>
+
+    <!-- Favorite / Like Button -->
+    <ImageButton
+        android:id="@+id/btnMiniFavorite"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="@dimen/spacing_4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Favorite button"
+        android:padding="@dimen/spacing_8dp"
+        android:src="@drawable/ic_favorite_border"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnMiniPlayPause"
+        app:layout_constraintTop_toBottomOf="@id/miniPlayerProgressBar"
+        app:tint="@color/text_secondary" />
+
+    <!-- Play / Pause Button -->
+    <ImageButton
+        android:id="@+id/btnMiniPlayPause"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="@dimen/spacing_8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Play or Pause"
+        android:padding="@dimen/spacing_8dp"
+        android:src="@drawable/ic_play_arrow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/miniPlayerProgressBar"
+        app:tint="@color/white" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

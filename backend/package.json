@@ -1,0 +1,35 @@
+{
+  "name": "spotify-clone-backend",
+  "version": "1.0.0",
+  "description": "Production-grade AI-powered Music Streaming Backend with Node.js, Express, MongoDB, and Google Gemini API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node src/seeder/seedCatalog.js"
+  },
+  "keywords": [
+    "music-streaming",
+    "spotify-clone",
+    "nodejs",
+    "express",
+    "mongodb",
+    "gemini-ai",
+    "media3"
+  ],
+  "author": "Antigravity Tech Lead",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.2.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.4.0",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {}
+}

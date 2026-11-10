@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/spotify_black">
+
+    <!-- Top Bar with Title and Add Button -->
+    <LinearLayout
+        android:id="@+id/layoutLibraryHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_16dp"
+        android:layout_marginTop="@dimen/spacing_24dp"
+        android:layout_marginEnd="@dimen/spacing_16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/nav_library"
+            android:textAppearance="@style/TextAppearance.Spotify.Headline" />
+
+        <ImageButton
+            android:id="@+id/btnCreatePlaylist"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Create Playlist"
+            android:padding="@dimen/spacing_8dp"
+            android:src="@android:drawable/ic_input_add"
+            app:tint="@color/white" />
+    </LinearLayout>
+
+    <!-- Library Filter Chips -->
+    <LinearLayout
+        android:id="@+id/layoutLibraryChips"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_16dp"
+        android:layout_marginTop="@dimen/spacing_16dp"
+        android:layout_marginEnd="@dimen/spacing_16dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/layoutLibraryHeader">
+
+        <TextView
+            android:id="@+id/chipPlaylists"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginEnd="@dimen/spacing_8dp"
+            android:background="@drawable/bg_pill_inactive"
+            android:gravity="center"
+            android:paddingStart="@dimen/spacing_16dp"
+            android:paddingEnd="@dimen/spacing_16dp"
+            android:text="Danh sách phát"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/chipArtists"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginEnd="@dimen/spacing_8dp"
+            android:background="@drawable/bg_pill_inactive"
+            android:gravity="center"
+            android:paddingStart="@dimen/spacing_16dp"
+            android:paddingEnd="@dimen/spacing_16dp"
+            android:text="Nghệ sĩ"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/chipAlbums"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_pill_inactive"
+            android:gravity="center"
+            android:paddingStart="@dimen/spacing_16dp"
+            android:paddingEnd="@dimen/spacing_16dp"
+            android:text="Album"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Shimmer Skeleton Loading State -->
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmerLibraryContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/spacing_12dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutLibraryChips"
+        app:shimmer_auto_start="true"
+        app:shimmer_base_color="@color/shimmer_base"
+        app:shimmer_highlight_color="@color/shimmer_highlight">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <include layout="@layout/item_shimmer_row" />
+            <include layout="@layout/item_shimmer_row" />
+            <include layout="@layout/item_shimmer_row" />
+            <include layout="@layout/item_shimmer_row" />
+            <include layout="@layout/item_shimmer_row" />
+        </LinearLayout>
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+    <!-- RecyclerView of Saved Items / Playlists -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvLibraryItems"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/spacing_12dp"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/spacing_32dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutLibraryChips"
+        tools:listitem="@layout/item_song_list_row" />
+
+    <!-- EMPTY STATE PATTERN -->
+    <LinearLayout
+        android:id="@+id/layoutLibraryEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="@dimen/spacing_32dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutLibraryChips">
+
+        <ImageView
+            android:id="@+id/ivLibraryEmptyIcon"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_library"
+            app:tint="@color/icon_inactive" />
+
+        <TextView
+            android:id="@+id/tvLibraryEmptyTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_16dp"
+            android:text="@string/empty_library_title"
+            android:textAppearance="@style/TextAppearance.Spotify.Title" />
+
+        <TextView
+            android:id="@+id/tvLibraryEmptySubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_8dp"
+            android:gravity="center"
+            android:text="@string/empty_library_subtitle"
+            android:textAppearance="@style/TextAppearance.Spotify.BodySecondary" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExploreMusic"
+            style="@style/Widget.Spotify.Button.Primary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_20dp"
+            android:text="Khám phá ngay" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

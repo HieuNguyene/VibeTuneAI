@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_sheet_rounded"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/spacing_24dp">
+
+    <!-- Drag Handle -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/spacing_12dp"
+        android:layout_marginBottom="@dimen/spacing_12dp"
+        android:background="@drawable/bg_pill_indicator"
+        android:backgroundTint="@color/text_disabled" />
+
+    <!-- Song Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/spacing_20dp"
+        android:paddingEnd="@dimen/spacing_20dp"
+        android:paddingBottom="@dimen/spacing_12dp">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivMenuSongArt"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.CornerSmall"
+            tools:srcCompat="@android:drawable/ic_menu_gallery" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_16dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvMenuSongTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textAppearance="@style/TextAppearance.Spotify.Headline"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                tools:text="Tên bài hát" />
+
+            <TextView
+                android:id="@+id/tvMenuArtistName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textAppearance="@style/TextAppearance.Spotify.Caption"
+                tools:text="Tên ca sĩ" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider_color" />
+
+    <!-- Scrollable 10 Options Menu -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxHeight="460dp"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/spacing_20dp"
+            android:paddingEnd="@dimen/spacing_20dp">
+
+            <!-- 1. Chia sẻ -->
+            <LinearLayout
+                android:id="@+id/itemMenuShare"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_share"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_weight="1"
+                    android:text="Chia sẻ"
+                    android:textAppearance="@style/TextAppearance.Spotify.Body"
+                    android:textSize="15sp" />
+            </LinearLayout>
+
+            <!-- 2. Lời bài hát bật hoặc tắt -->
+            <LinearLayout
+                android:id="@+id/itemMenuLyrics"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_lyrics"
+                    app:tint="@color/text_primary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Lời bài hát"
+                        android:textAppearance="@style/TextAppearance.Spotify.Body"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/tvLyricsToggleState"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Bật / Tắt hiển thị lời trên màn hình"
+                        android:textAppearance="@style/TextAppearance.Spotify.Caption"
+                        android:textColor="@color/spotify_green" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 3. Thêm vào danh sách yêu thích -->
+            <LinearLayout
+                android:id="@+id/itemMenuFavorite"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/ivMenuFavoriteIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_favorite_border"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:id="@+id/tvMenuFavoriteText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_weight="1"
+                    android:text="Thêm vào danh sách yêu thích"
+                    android:textAppearance="@style/TextAppearance.Spotify.Body"
+                    android:textSize="15sp" />
+            </LinearLayout>
+
+            <!-- 4. Thêm vào danh sách phát -->
+            <LinearLayout
+                android:id="@+id/itemMenuAddToPlaylist"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_playlist_add"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_weight="1"
+                    android:text="Thêm vào danh sách phát"
+                    android:textAppearance="@style/TextAppearance.Spotify.Body"
+                    android:textSize="15sp" />
+            </LinearLayout>
+
+            <!-- 5. Ẩn trong danh sách phát -->
+            <LinearLayout
+                android:id="@+id/itemMenuHideSong"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_visibility_off"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_weight="1"
+                    android:text="Ẩn trong danh sách phát"
+                    android:textAppearance="@style/TextAppearance.Spotify.Body"
+                    android:textSize="15sp" />
+            </LinearLayout>
+
+            <!-- 6. Không tính bản nhạc vào hồ sơ gu -->
+            <LinearLayout
+                android:id="@+id/itemMenuExcludeTaste"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/ivExcludeTasteIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_tune"
+                    app:tint="@color/text_primary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Không tính bản nhạc vào hồ sơ gu"
+                        android:textAppearance="@style/TextAppearance.Spotify.Body"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/tvExcludeTasteState"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Không ảnh hưởng đến gợi ý âm nhạc của bạn"
+                        android:textAppearance="@style/TextAppearance.Spotify.Caption" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 7. Thêm vào danh sách chờ -->
+            <LinearLayout
+                android:id="@+id/itemMenuAddToQueue"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_queue_music"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_weight="1"
+                    android:text="Thêm vào danh sách chờ"
+                    android:textAppearance="@style/TextAppearance.Spotify.Body"
+                    android:textSize="15sp" />
+            </LinearLayout>
+
+            <!-- 8. Chuyển đến album -->
+            <LinearLayout
+                android:id="@+id/itemMenuGoToAlbum"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_album"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_weight="1"
+                    android:text="Chuyển đến album"
+                    android:textAppearance="@style/TextAppearance.Spotify.Body"
+                    android:textSize="15sp" />
+            </LinearLayout>
+
+            <!-- 9. Chuyển tới trang nghệ sĩ -->
+            <LinearLayout
+                android:id="@+id/itemMenuGoToArtist"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_person"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_weight="1"
+                    android:text="Chuyển tới trang nghệ sĩ"
+                    android:textAppearance="@style/TextAppearance.Spotify.Body"
+                    android:textSize="15sp" />
+            </LinearLayout>
+
+            <!-- 10. Hẹn giờ tắt -->
+            <LinearLayout
+                android:id="@+id/itemMenuSleepTimer"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/ivSleepTimerIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_timer"
+                    app:tint="@color/text_primary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Hẹn giờ tắt"
+                        android:textAppearance="@style/TextAppearance.Spotify.Body"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/tvSleepTimerStatusSummary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Chưa bật"
+                        android:textAppearance="@style/TextAppearance.Spotify.Caption" />
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="148dp"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="@dimen/spacing_16dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:orientation="vertical">
+
+    <!-- Square Cover Art with 8dp rounded corner -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivCoverArt"
+        android:layout_width="148dp"
+        android:layout_height="148dp"
+        android:background="@color/spotify_elevated"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.Card"
+        tools:srcCompat="@android:drawable/ic_menu_gallery" />
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tvCardTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="@style/TextAppearance.Spotify.Body"
+        android:textStyle="bold"
+        tools:text="Daily Mix 1" />
+
+    <!-- Subtitle (Artist or Description) -->
+    <TextView
+        android:id="@+id/tvCardSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textAppearance="@style/TextAppearance.Spotify.Caption"
+        tools:text="Sơn Tùng M-TP, Vũ, HIEUTHUHAI" />
+
+</LinearLayout>

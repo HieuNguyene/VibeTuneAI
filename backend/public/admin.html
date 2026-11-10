@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibe Music • Trình Xem Trực Quan Cơ Sở Dữ Liệu MongoDB</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #121212; color: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .spotify-green { color: #1DB954; }
+    .bg-spotify-green { background-color: #1DB954; }
+    .bg-spotify-surface { background-color: #181818; }
+    .bg-spotify-card { background-color: #242424; }
+    .border-spotify { border-color: #282828; }
+    .table-row:hover { background-color: #282828; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #121212; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-spotify-surface border-b border-spotify sticky top-0 z-50 px-6 py-4 flex items-center justify-between shadow-lg">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-full bg-spotify-green flex items-center justify-center text-black font-extrabold text-xl">
+        <i class="fa-solid fa-database"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight flex items-center gap-2">
+          Vibe Music <span class="text-xs px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">MongoDB: music_app</span>
+        </h1>
+        <p class="text-xs text-gray-400">Trình khám phá dữ liệu trực quan (Visual Database Explorer)</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-4">
+      <div class="flex items-center space-x-2 text-xs text-emerald-400 bg-black/40 px-3 py-1.5 rounded-full border border-emerald-900/60">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>mongodb://127.0.0.1:27017</span>
+      </div>
+      <button onclick="openAddSongModal()" class="px-3.5 py-1.5 bg-spotify-green hover:bg-[#1ed760] text-black text-xs font-bold rounded-full flex items-center gap-2 transition shadow">
+        <i class="fa-solid fa-plus"></i> Thêm Bài Hát Mới
+      </button>
+      <button onclick="refreshData()" class="px-3 py-1.5 bg-spotify-card hover:bg-[#2e2e2e] text-xs font-semibold rounded-full border border-spotify flex items-center gap-2 transition">
+        <i class="fa-solid fa-rotate"></i> Làm mới
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+
+    <!-- Stats Grid -->
+    <div id="statsGrid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div class="bg-spotify-surface p-3.5 rounded-xl border border-spotify flex flex-col items-center text-center">
+        <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Bài Hát</span>
+        <span id="stat-songs" class="text-2xl font-extrabold text-spotify-green mt-1">--</span>
+      </div>
+      <div class="bg-spotify-surface p-3.5 rounded-xl border border-spotify flex flex-col items-center text-center">
+        <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Nghệ Sĩ</span>
+        <span id="stat-artists" class="text-2xl font-extrabold text-cyan-400 mt-1">--</span>
+      </div>
+      <div class="bg-spotify-surface p-3.5 rounded-xl border border-spotify flex flex-col items-center text-center">
+        <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Album</span>
+        <span id="stat-albums" class="text-2xl font-extrabold text-purple-400 mt-1">--</span>
+      </div>
+      <div class="bg-spotify-surface p-3.5 rounded-xl border border-spotify flex flex-col items-center text-center">
+        <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Thể Loại</span>
+        <span id="stat-genres" class="text-2xl font-extrabold text-pink-400 mt-1">--</span>
+      </div>
+      <div class="bg-spotify-surface p-3.5 rounded-xl border border-spotify flex flex-col items-center text-center">
+        <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Playlists</span>
+        <span id="stat-playlists" class="text-2xl font-extrabold text-yellow-400 mt-1">--</span>
+      </div>
+      <div class="bg-spotify-surface p-3.5 rounded-xl border border-spotify flex flex-col items-center text-center">
+        <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">Users</span>
+        <span id="stat-users" class="text-2xl font-extrabold text-indigo-400 mt-1">--</span>
+      </div>
+      <div class="bg-spotify-surface p-3.5 rounded-xl border border-spotify flex flex-col items-center text-center">
+        <span class="text-gray-400 text-xs font-medium uppercase tracking-wider">AI Prompts</span>
+        <span id="stat-aiLogs" class="text-2xl font-extrabold text-amber-400 mt-1">--</span>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs & Search Toolbar -->
+    <div class="bg-spotify-surface p-4 rounded-2xl border border-spotify space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- Tabs -->
+        <div class="flex flex-wrap gap-2 text-sm font-semibold" id="tabButtons">
+          <button onclick="switchTab('songs')" data-tab="songs" class="tab-btn px-4 py-2 rounded-full bg-spotify-green text-black transition">
+            <i class="fa-solid fa-music mr-1.5"></i> Bài hát (Songs)
+          </button>
+          <button onclick="switchTab('artists')" data-tab="artists" class="tab-btn px-4 py-2 rounded-full bg-spotify-card text-gray-300 hover:text-white transition">
+            <i class="fa-solid fa-microphone mr-1.5"></i> Nghệ sĩ (Artists)
+          </button>
+          <button onclick="switchTab('albums')" data-tab="albums" class="tab-btn px-4 py-2 rounded-full bg-spotify-card text-gray-300 hover:text-white transition">
+            <i class="fa-solid fa-compact-disc mr-1.5"></i> Album
+          </button>
+          <button onclick="switchTab('genres')" data-tab="genres" class="tab-btn px-4 py-2 rounded-full bg-spotify-card text-gray-300 hover:text-white transition">
+            <i class="fa-solid fa-tags mr-1.5"></i> Thể loại (Genres)
+          </button>
+          <button onclick="switchTab('playlists')" data-tab="playlists" class="tab-btn px-4 py-2 rounded-full bg-spotify-card text-gray-300 hover:text-white transition">
+            <i class="fa-solid fa-list-ul mr-1.5"></i> Playlists
+          </button>
+          <button onclick="switchTab('users')" data-tab="users" class="tab-btn px-4 py-2 rounded-full bg-spotify-card text-gray-300 hover:text-white transition">
+            <i class="fa-solid fa-users mr-1.5"></i> Người dùng (Users)
+          </button>
+          <button onclick="switchTab('ailogs')" data-tab="ailogs" class="tab-btn px-4 py-2 rounded-full bg-spotify-card text-gray-300 hover:text-white transition">
+            <i class="fa-solid fa-robot mr-1.5"></i> AI Logs
+          </button>
+        </div>
+
+        <!-- Search Box -->
+        <div class="relative w-full md:w-72">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-400 text-sm"></i>
+          <input id="searchInput" oninput="filterCurrentTable()" type="text" placeholder="Tìm kiếm nhanh trong bảng..."
+                 class="w-full bg-[#121212] border border-spotify text-sm rounded-full pl-9 pr-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-spotify-green">
+        </div>
+      </div>
+
+      <!-- Data Table Area -->
+      <div class="overflow-x-auto rounded-xl border border-spotify bg-[#121212]">
+        <table class="w-full text-left text-sm" id="dataTable">
+          <thead class="bg-spotify-surface text-gray-400 text-xs uppercase tracking-wider border-b border-spotify" id="tableHead">
+            <!-- Dynamic Headers -->
+          </thead>
+          <tbody class="divide-y divide-spotify" id="tableBody">
+            <!-- Dynamic Rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex items-center justify-between text-xs text-gray-400 px-1 pt-2">
+        <span id="recordCountText">Đang tải dữ liệu...</span>
+        <span>Hiển thị trực tiếp từ MongoDB</span>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- JSON Modal -->
+  <div id="jsonModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-spotify-surface border border-spotify rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl">
+      <div class="p-4 border-b border-spotify flex items-center justify-between">
+        <h3 class="font-bold text-base flex items-center gap-2">
+          <i class="fa-solid fa-code text-spotify-green"></i> Chi tiết MongoDB Document (BSON)
+        </h3>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-white text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="p-4 overflow-auto flex-1 font-mono text-xs">
+        <pre id="jsonContent" class="text-emerald-300 bg-black/60 p-4 rounded-xl overflow-x-auto whitespace-pre-wrap"></pre>
+      </div>
+      <div class="p-4 border-t border-spotify flex justify-end">
+        <button onclick="closeModal()" class="px-5 py-2 bg-spotify-card hover:bg-spotify-green hover:text-black rounded-full font-semibold text-xs transition">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentCollection = 'songs';
+    let currentRawData = [];
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/v1/admin/summary');
+        const json = await res.json();
+        if (json.success && json.data.summary) {
+          const s = json.data.summary;
+          document.getElementById('stat-songs').textContent = s.songs;
+          document.getElementById('stat-artists').textContent = s.artists;
+          document.getElementById('stat-albums').textContent = s.albums;
+          document.getElementById('stat-genres').textContent = s.genres;
+          document.getElementById('stat-playlists').textContent = s.playlists;
+          document.getElementById('stat-users').textContent = s.users;
+          document.getElementById('stat-aiLogs').textContent = s.aiLogs;
+        }
+      } catch (e) {
+        console.error('Lỗi khi tải thống kê:', e);
+      }
+    }
+
+    async function switchTab(collectionName) {
+      currentCollection = collectionName;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (btn.dataset.tab === collectionName) {
+          btn.className = 'tab-btn px-4 py-2 rounded-full bg-spotify-green text-black transition';
+        } else {
+          btn.className = 'tab-btn px-4 py-2 rounded-full bg-spotify-card text-gray-300 hover:text-white transition';
+        }
+      });
+      document.getElementById('searchInput').value = '';
+      await loadCollectionData(collectionName);
+    }
+
+    async function loadCollectionData(name) {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải từ MongoDB...</td></tr>`;
+
+      try {
+        const res = await fetch(`/api/v1/admin/data/${name}`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          currentRawData = json.data.items || [];
+          renderTable(currentRawData);
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-red-400">Lỗi kết nối MongoDB: ${err.message}</td></tr>`;
+      }
+    }
+
+    function renderTable(items) {
+      const thead = document.getElementById('tableHead');
+      const tbody = document.getElementById('tableBody');
+      const countText = document.getElementById('recordCountText');
+
+      countText.textContent = `Tổng cộng: ${items.length} bản ghi trong bảng "${currentCollection}"`;
+
+      if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-gray-500">Chưa có dữ liệu</td></tr>`;
+        return;
+      }
+
+      if (currentCollection === 'songs') {
+        thead.innerHTML = `
+          <tr>
+            <th class="p-3">#</th>
+            <th class="p-3">Ảnh bìa & Bài hát</th>
+            <th class="p-3">Nghệ sĩ</th>
+            <th class="p-3">Thể loại</th>
+            <th class="p-3">Thời lượng</th>
+            <th class="p-3">Lượt nghe / Thích</th>
+            <th class="p-3">Thao tác</th>
+          </tr>
+        `;
+        tbody.innerHTML = items.map((song, i) => {
+          const mainArtist = song.artist || (song.artistId && song.artistId.name) || 'Unknown';
+          const featured = Array.isArray(song.featuredArtistIds) ? song.featuredArtistIds : [];
+          return `
+          <tr class="table-row border-b border-spotify/50 transition">
+            <td class="p-3 text-gray-400 font-mono text-xs">${i + 1}</td>
+            <td class="p-3 flex items-center space-x-3">
+              <img src="${song.coverUrl || 'https://via.placeholder.com/60'}" class="w-12 h-12 rounded-lg object-cover bg-neutral-800" alt="">
+              <div>
+                <div class="font-bold text-white text-sm">${escapeHtml(song.title)}</div>
+                <div class="text-xs text-gray-400">${escapeHtml(song.album || 'Single')}</div>
+              </div>
+            </td>
+            <td class="p-3">
+              <button onclick="filterByArtist('${escapeHtml(mainArtist)}')" class="text-left font-semibold text-spotify-green hover:underline hover:text-emerald-300 block">
+                ${escapeHtml(mainArtist)}
+              </button>
+              ${featured.length > 0 ? `
+                <div class="text-[11px] text-gray-400 mt-0.5">
+                  <span class="text-gray-500">ft.</span> ${featured.map(fa => {
+                    const faName = typeof fa === 'object' && fa.name ? fa.name : (fa || '');
+                    return `<button onclick="filterByArtist('${escapeHtml(faName)}')" class="hover:underline text-gray-300">${escapeHtml(faName)}</button>`;
+                  }).join(', ')}
+                </div>
+              ` : ''}
+            </td>
+            <td class="p-3">
+              <span class="px-2.5 py-1 text-xs rounded-full bg-spotify-card border border-spotify font-medium">
+                ${escapeHtml(song.genre || (song.genreId && song.genreId.name) || 'V-Pop')}
+              </span>
+            </td>
+            <td class="p-3 text-gray-400 font-mono text-xs">${formatDuration(song.durationSeconds)}</td>
+            <td class="p-3 text-xs text-gray-400">
+              <div><i class="fa-solid fa-play text-gray-500 mr-1"></i> ${(song.playsCount || 0).toLocaleString()}</div>
+              <div><i class="fa-solid fa-heart text-pink-500 mr-1"></i> ${(song.likesCount || 0).toLocaleString()}</div>
+            </td>
+            <td class="p-3 space-x-2">
+              <button onclick='showJsonModal(${JSON.stringify(song).replace(/'/g, "&#39;")})' class="px-2.5 py-1 bg-spotify-card hover:bg-neutral-700 text-xs rounded-md text-emerald-400 border border-spotify">
+                <i class="fa-solid fa-code"></i> JSON
+              </button>
+              <button onclick="openEditLyricsModal('${song._id}', '${escapeHtml(song.title)}', '${encodeURIComponent(song.lyrics || '')}')" class="px-2.5 py-1 bg-spotify-card hover:bg-[#333] text-xs rounded-md text-yellow-400 border border-yellow-700/60 shadow">
+                <i class="fa-solid fa-align-left mr-1"></i> Lời LRC
+              </button>
+              ${song.audioUrl ? `
+                <button onclick="playAudio('${song.audioUrl}', '${escapeHtml(song.title)}')" class="px-2.5 py-1 bg-spotify-green hover:bg-[#1ed760] text-black font-bold text-xs rounded-md border border-spotify inline-block shadow">
+                  <i class="fa-solid fa-play"></i> Nghe Thử
+                </button>
+              ` : ''}
+              <button onclick="deleteSong('${song._id}', '${escapeHtml(song.title)}')" class="px-2.5 py-1 bg-red-950/60 hover:bg-red-900 text-xs rounded-md text-red-400 border border-red-800">
+                <i class="fa-solid fa-trash"></i> Xóa
+              </button>
+            </td>
+          </tr>
+        `;
+        }).join('');
+      } else if (currentCollection === 'artists') {
+        thead.innerHTML = `
+          <tr>
+            <th class="p-3">#</th>
+            <th class="p-3">Avatar & Nghệ sĩ</th>
+            <th class="p-3">Tiểu sử</th>
+            <th class="p-3">Followers</th>
+            <th class="p-3">Số Bài Hát</th>
+            <th class="p-3">Thao tác</th>
+          </tr>
+        `;
+        tbody.innerHTML = items.map((art, i) => {
+          const songsCount = art.songsCount || (art.songs ? art.songs.length : 0);
+          return `
+          <tr class="table-row border-b border-spotify/50 transition">
+            <td class="p-3 text-gray-400 font-mono text-xs">${i + 1}</td>
+            <td class="p-3 flex items-center space-x-3">
+              <img src="${art.avatarUrl || 'https://via.placeholder.com/60'}" class="w-12 h-12 rounded-full object-cover bg-neutral-800 shadow" alt="">
+              <div>
+                <div class="font-bold text-white text-sm">${escapeHtml(art.name)}</div>
+                <div class="text-[11px] text-gray-400 font-mono">${art._id}</div>
+              </div>
+            </td>
+            <td class="p-3 text-xs text-gray-400 max-w-xs truncate">${escapeHtml(art.bio || 'Chưa có tiểu sử')}</td>
+            <td class="p-3 text-xs font-mono text-cyan-400 font-bold">${(art.followersCount || 0).toLocaleString()}</td>
+            <td class="p-3">
+              <span class="px-2.5 py-1 text-xs rounded-full font-bold inline-flex items-center gap-1.5 ${songsCount > 0 ? 'bg-emerald-950/80 text-spotify-green border border-emerald-700/60' : 'bg-neutral-800 text-gray-500'}">
+                <i class="fa-solid fa-music text-[10px]"></i> ${songsCount} bài
+              </span>
+            </td>
+            <td class="p-3 space-x-2">
+              <button onclick='showJsonModal(${JSON.stringify(art).replace(/'/g, "&#39;")})' class="px-2.5 py-1 bg-spotify-card hover:bg-neutral-700 text-xs rounded-md text-emerald-400 border border-spotify">
+                <i class="fa-solid fa-code"></i> JSON
+              </button>
+              ${songsCount > 0 ? `
+                <button onclick='openArtistSongsModal("${art._id}", "${escapeHtml(art.name)}", ${JSON.stringify(art.songs || []).replace(/'/g, "&#39;")})' class="px-2.5 py-1 bg-spotify-green hover:bg-[#1ed760] text-black font-bold text-xs rounded-md border border-spotify shadow inline-flex items-center gap-1">
+                  <i class="fa-solid fa-list-music"></i> Xem ${songsCount} bài
+                </button>
+              ` : `
+                <button onclick="filterByArtist('${escapeHtml(art.name)}')" class="px-2.5 py-1 bg-spotify-card hover:bg-neutral-700 text-xs rounded-md text-gray-400 border border-spotify">
+                  <i class="fa-solid fa-magnifying-glass"></i> Tìm
+                </button>
+              `}
+            </td>
+          </tr>
+        `;
+        }).join('');
+      } else if (currentCollection === 'genres') {
+        thead.innerHTML = `
+          <tr>
+            <th class="p-3">#</th>
+            <th class="p-3">Tên Thể loại</th>
+            <th class="p-3">Slug</th>
+            <th class="p-3">Mã Màu</th>
+            <th class="p-3">Mô tả</th>
+            <th class="p-3">Thao tác</th>
+          </tr>
+        `;
+        tbody.innerHTML = items.map((g, i) => `
+          <tr class="table-row border-b border-spotify/50 transition">
+            <td class="p-3 text-gray-400 font-mono text-xs">${i + 1}</td>
+            <td class="p-3 font-bold text-white flex items-center gap-2">
+              <span class="w-3.5 h-3.5 rounded-full inline-block" style="background-color: ${g.colorCode || '#1DB954'}"></span>
+              ${escapeHtml(g.name)}
+            </td>
+            <td class="p-3 text-xs font-mono text-gray-400">${escapeHtml(g.slug)}</td>
+            <td class="p-3 text-xs font-mono text-emerald-400">${escapeHtml(g.colorCode || '#1DB954')}</td>
+            <td class="p-3 text-xs text-gray-400 max-w-sm truncate">${escapeHtml(g.description || '')}</td>
+            <td class="p-3">
+              <button onclick='showJsonModal(${JSON.stringify(g).replace(/'/g, "&#39;")})' class="px-2.5 py-1 bg-spotify-card hover:bg-neutral-700 text-xs rounded-md text-emerald-400 border border-spotify">
+                <i class="fa-solid fa-code"></i> JSON
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      } else {
+        // Generic fallback table for albums, playlists, users, ailogs
+        const keys = Object.keys(items[0]).filter(k => k !== '__v' && k !== 'passwordHash');
+        thead.innerHTML = `
+          <tr>
+            <th class="p-3">#</th>
+            ${keys.slice(0, 5).map(k => `<th class="p-3">${k}</th>`).join('')}
+            <th class="p-3">Thao tác</th>
+          </tr>
+        `;
+        tbody.innerHTML = items.map((row, i) => `
+          <tr class="table-row border-b border-spotify/50 transition">
+            <td class="p-3 text-gray-400 font-mono text-xs">${i + 1}</td>
+            ${keys.slice(0, 5).map(k => `<td class="p-3 text-xs text-gray-300 max-w-xs truncate">${typeof row[k] === 'object' ? JSON.stringify(row[k]) : escapeHtml(String(row[k] || ''))}</td>`).join('')}
+            <td class="p-3">
+              <button onclick='showJsonModal(${JSON.stringify(row).replace(/'/g, "&#39;")})' class="px-2.5 py-1 bg-spotify-card hover:bg-neutral-700 text-xs rounded-md text-emerald-400 border border-spotify">
+                <i class="fa-solid fa-code"></i> JSON
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function filterCurrentTable() {
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      if (!q) {
+        renderTable(currentRawData);
+        return;
+      }
+      const filtered = currentRawData.filter(item => {
+        const text = JSON.stringify(item).toLowerCase();
+        return text.includes(q);
+      });
+      renderTable(filtered);
+    }
+
+    function formatDuration(sec) {
+      if (!sec) return '0:00';
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function showJsonModal(obj) {
+      document.getElementById('jsonContent').textContent = JSON.stringify(obj, null, 2);
+      document.getElementById('jsonModal').classList.remove('hidden');
+    }
+
+    async function filterByArtist(name) {
+      if (!name) return;
+      if (currentCollection !== 'songs') {
+        await switchTab('songs');
+      }
+      document.getElementById('searchInput').value = name;
+      filterCurrentTable();
+    }
+
+    async function openArtistSongsModal(artistId, artistName, preloadedSongs) {
+      document.getElementById('artistSongsModalTitle').textContent = `Tất cả bài hát của: ${artistName}`;
+      document.getElementById('artistSongsModalSubtitle').textContent = `ID nghệ sĩ: ${artistId}`;
+      const tbody = document.getElementById('artistSongsList');
+      tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu bài hát...</td></tr>`;
+      document.getElementById('artistSongsModal').classList.remove('hidden');
+
+      try {
+        let songs = preloadedSongs;
+        if (!songs || songs.length === 0) {
+          const res = await fetch(`/api/v1/songs/artist/${artistId}`);
+          const data = await res.json();
+          songs = (data.data && data.data.songs) ? data.data.songs : [];
+        }
+
+        if (songs.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400">Nghệ sĩ này chưa có bài hát nào trong hệ thống.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = songs.map((s, idx) => `
+          <tr class="border-b border-spotify/40 hover:bg-neutral-800/60 transition">
+            <td class="p-3 text-gray-400 font-mono text-xs">${idx + 1}</td>
+            <td class="p-3 flex items-center space-x-3">
+              <img src="${s.coverUrl || 'https://via.placeholder.com/50'}" class="w-10 h-10 rounded-lg object-cover bg-neutral-800" alt="">
+              <div>
+                <div class="font-bold text-white text-sm">${escapeHtml(s.title)}</div>
+                <div class="text-xs text-gray-400">${escapeHtml(s.album || (s.albumId && s.albumId.title) || 'Single')}</div>
+              </div>
+            </td>
+            <td class="p-3 text-xs text-gray-400 font-mono">${formatDuration(s.durationSeconds)}</td>
+            <td class="p-3 text-xs text-gray-400">
+              <i class="fa-solid fa-play text-gray-500 mr-1"></i> ${(s.playsCount || 0).toLocaleString()}
+            </td>
+            <td class="p-3 space-x-2">
+              ${s.audioUrl ? `
+                <button onclick="playAudio('${s.audioUrl}', '${escapeHtml(s.title)}')" class="px-2.5 py-1 bg-spotify-green hover:bg-[#1ed760] text-black font-bold text-xs rounded-md shadow">
+                  <i class="fa-solid fa-play"></i> Nghe
+                </button>
+              ` : ''}
+              <button onclick="openEditLyricsModal('${s._id}', '${escapeHtml(s.title)}', '${encodeURIComponent(s.lyrics || '')}')" class="px-2.5 py-1 bg-spotify-card hover:bg-[#333] text-xs rounded-md text-yellow-400 border border-yellow-700/60 shadow">
+                <i class="fa-solid fa-align-left mr-1"></i> Lời
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-400">Lỗi khi tải bài hát: ${err.message}</td></tr>`;
+      }
+    }
+
+    function closeArtistSongsModal() {
+      document.getElementById('artistSongsModal').classList.add('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('jsonModal').classList.add('hidden');
+    }
+
+    async function openAddSongModal() {
+      try {
+        const res = await fetch('/api/admin/uploads');
+        const data = await res.json();
+        
+        const audioSelect = document.getElementById('newSongAudio');
+        const coverSelect = document.getElementById('newSongCover');
+        
+        audioSelect.innerHTML = '<option value="">-- Chọn file MP3 trong thư mục uploads/audios --</option>';
+        coverSelect.innerHTML = '<option value="">-- Chọn file ảnh trong thư mục uploads/covers --</option>';
+
+        if (data.data && data.data.audios) {
+          data.data.audios.forEach(file => {
+            audioSelect.innerHTML += `<option value="${file}">${file}</option>`;
+          });
+        }
+        if (data.data && data.data.covers) {
+          data.data.covers.forEach(file => {
+            coverSelect.innerHTML += `<option value="${file}">${file}</option>`;
+          });
+        }
+
+        document.getElementById('addSongModal').classList.remove('hidden');
+      } catch (err) {
+        alert('Lỗi khi tải danh sách file: ' + err.message);
+      }
+    }
+
+    function closeAddSongModal() {
+      document.getElementById('addSongModal').classList.add('hidden');
+    }
+
+    async function submitAddSong(e) {
+      e.preventDefault();
+      const title = document.getElementById('newSongTitle').value.trim();
+      const artistName = document.getElementById('newSongArtist').value.trim();
+      const genreSlug = document.getElementById('newSongGenre').value;
+      const audioFileName = document.getElementById('newSongAudio').value;
+      const coverFileName = document.getElementById('newSongCover').value;
+      const duration = document.getElementById('newSongDuration').value;
+      const lyrics = document.getElementById('newSongLyrics').value.trim();
+
+      if (!title) {
+        alert('Vui lòng nhập tên bài hát!');
+        return;
+      }
+      if (!audioFileName) {
+        alert('Vui lòng chọn file nhạc MP3 (hoặc thả file .mp3 vào thư mục backend/public/uploads/audios rồi mở lại)!');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/admin/songs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            artistName: artistName || 'Nghệ Sĩ Mới',
+            genreSlug,
+            audioFileName,
+            coverFileName,
+            duration: parseInt(duration) || 210,
+            lyrics: lyrics || '',
+            mood: ['chill']
+          })
+        });
+        const result = await res.json();
+        if (result.success) {
+          alert('Đã thêm bài hát thành công vào Cơ sở dữ liệu!');
+          closeAddSongModal();
+          document.getElementById('addSongForm').reset();
+          refreshData();
+        } else {
+          alert('Lỗi: ' + result.message);
+        }
+      } catch (err) {
+        alert('Lỗi khi thêm bài hát: ' + err.message);
+      }
+    }
+
+    function insertSampleLrc() {
+      const sample = `[00:00.00]Giai điệu bắt đầu...
+[00:06.00]Khi cơn mưa vừa rơi qua lối nhỏ
+[00:12.00]Anh bồi hồi nhớ lại tháng ngày qua
+[00:18.00]Từng giai điệu ngân vang trong lòng ta
+[00:24.00]Ấm áp từng giây phút dịu êm
+[00:32.00]Hòa mình vào không gian âm nhạc
+[00:40.00]Xua tan đi mọi âu lo mệt nhoài
+[00:50.00]Cảm nhận từng cung bậc cảm xúc thăng hoa.`;
+      document.getElementById('newSongLyrics').value = sample;
+    }
+
+    function openEditLyricsModal(id, title, encodedLyrics) {
+      document.getElementById('editSongId').value = id;
+      document.getElementById('editSongTitle').textContent = title;
+      try {
+        document.getElementById('editSongLyricsText').value = decodeURIComponent(encodedLyrics || '');
+      } catch (e) {
+        document.getElementById('editSongLyricsText').value = encodedLyrics || '';
+      }
+      document.getElementById('editLyricsModal').classList.remove('hidden');
+    }
+
+    function closeEditLyricsModal() {
+      document.getElementById('editLyricsModal').classList.add('hidden');
+    }
+
+    async function submitUpdateLyrics(e) {
+      e.preventDefault();
+      const id = document.getElementById('editSongId').value;
+      const lyrics = document.getElementById('editSongLyricsText').value.trim();
+
+      try {
+        const res = await fetch(`/api/admin/songs/${id}/lyrics`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lyrics })
+        });
+        const result = await res.json();
+        if (result.success) {
+          alert('Đã cập nhật lời bài hát thành công vào Cơ sở dữ liệu!');
+          closeEditLyricsModal();
+          refreshData();
+        } else {
+          alert('Lỗi: ' + result.message);
+        }
+      } catch (err) {
+        alert('Lỗi khi cập nhật lời bài hát: ' + err.message);
+      }
+    }
+
+    async function deleteSong(id, title) {
+      if (!confirm(`Bạn có chắc chắn muốn xóa bài hát "${title}" khỏi CSDL không?`)) return;
+      try {
+        const res = await fetch(`/api/admin/songs/${id}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (result.success) {
+          alert('Đã xóa bài hát thành công!');
+          refreshData();
+        } else {
+          alert('Lỗi: ' + result.message);
+        }
+      } catch (err) {
+        alert('Lỗi khi xóa bài hát: ' + err.message);
+      }
+    }
+
+    function playAudio(url, title) {
+      let playerContainer = document.getElementById('audioPlayerContainer');
+      if (!playerContainer) {
+        playerContainer = document.createElement('div');
+        playerContainer.id = 'audioPlayerContainer';
+        playerContainer.className = 'fixed bottom-4 right-4 z-50 bg-[#181818] border border-[#1DB954] p-3 rounded-2xl shadow-2xl flex items-center space-x-3 max-w-md';
+        playerContainer.innerHTML = `
+          <div class="w-10 h-10 rounded-full bg-[#1DB954] flex items-center justify-center text-black font-bold">
+            <i class="fa-solid fa-music"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div id="playingTitle" class="text-xs font-bold text-white truncate">Đang phát...</div>
+            <audio id="adminAudioPlayer" controls class="h-8 w-60 mt-1"></audio>
+          </div>
+          <button onclick="document.getElementById('audioPlayerContainer').remove()" class="text-gray-400 hover:text-white text-lg px-1">&times;</button>
+        `;
+        document.body.appendChild(playerContainer);
+      }
+      document.getElementById('playingTitle').textContent = 'Đang phát: ' + (title || 'Bài hát');
+      const audio = document.getElementById('adminAudioPlayer');
+      audio.src = url;
+      audio.play().catch(e => console.error('Play error:', e));
+    }
+
+    async function refreshData() {
+      await loadStats();
+      await loadCollectionData(currentCollection);
+    }
+
+    // Init
+    refreshData();
+  </script>
+
+  <!-- Add Song Modal -->
+  <div id="addSongModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-spotify-surface border border-spotify rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between border-b border-spotify pb-3">
+        <h3 class="text-lg font-bold text-spotify-green flex items-center gap-2">
+          <i class="fa-solid fa-music"></i> Thêm Bài Hát Thật Của Bạn
+        </h3>
+        <button onclick="closeAddSongModal()" class="text-gray-400 hover:text-white text-xl">&times;</button>
+      </div>
+
+      <form id="addSongForm" onsubmit="submitAddSong(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-gray-300 mb-1">Tên bài hát *</label>
+          <input type="text" id="newSongTitle" required placeholder="Ví dụ: Chúng Ta Của Hiện Tại" class="w-full bg-spotify-card border border-spotify rounded-lg p-2.5 text-white focus:outline-none focus:border-spotify-green">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-gray-300 mb-1">Tên ca sĩ / Nghệ sĩ</label>
+            <input type="text" id="newSongArtist" placeholder="Ví dụ: Sơn Tùng M-TP" class="w-full bg-spotify-card border border-spotify rounded-lg p-2.5 text-white focus:outline-none focus:border-spotify-green">
+          </div>
+          <div>
+            <label class="block font-semibold text-gray-300 mb-1">Thể loại</label>
+            <select id="newSongGenre" class="w-full bg-spotify-card border border-spotify rounded-lg p-2.5 text-white focus:outline-none focus:border-spotify-green">
+              <option value="v-pop">V-Pop</option>
+              <option value="lo-fi-chill">Lo-Fi Chill</option>
+              <option value="indie-ballad">Indie & Ballad</option>
+              <option value="hip-hop-rap">Hip Hop & Rap</option>
+              <option value="r-and-b-soul">R&B / Soul</option>
+              <option value="electronic-edm">Electronic / EDM</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-300 mb-1">File nhạc MP3 (Trong thư mục uploads/audios) *</label>
+          <select id="newSongAudio" required class="w-full bg-spotify-card border border-spotify rounded-lg p-2.5 text-white focus:outline-none focus:border-spotify-green">
+            <option value="">-- Đang quét file... --</option>
+          </select>
+          <p class="text-[10px] text-gray-400 mt-1">Chưa thấy file? Hãy thả file .mp3 vào <code>backend/public/uploads/audios/</code> rồi bấm mở lại form này.</p>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-300 mb-1">Ảnh bìa album (Trong thư mục uploads/covers)</label>
+          <select id="newSongCover" class="w-full bg-spotify-card border border-spotify rounded-lg p-2.5 text-white focus:outline-none focus:border-spotify-green">
+            <option value="">-- Đang quét file... --</option>
+          </select>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block font-semibold text-gray-300">Lời bài hát (Hỗ trợ định dạng LRC đồng bộ chữ)</label>
+            <button type="button" onclick="insertSampleLrc()" class="text-[11px] text-spotify-green hover:underline flex items-center gap-1">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Dán mẫu LRC
+            </button>
+          </div>
+          <textarea id="newSongLyrics" rows="4" placeholder="[00:00.00]Giai điệu mở đầu...&#10;[00:10.50]Dòng lời bài hát 1...&#10;[00:16.00]Dòng lời bài hát 2..." class="w-full bg-spotify-card border border-spotify rounded-lg p-2.5 text-white font-mono text-[11px] focus:outline-none focus:border-spotify-green"></textarea>
+          <p class="text-[10px] text-gray-400 mt-1">Định dạng chuẩn: <code>[phút:giây.tích_tắc] Câu hát</code>. Nhạc sẽ tự chạy theo câu và tua khi ấn vào câu.</p>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-300 mb-1">Thời lượng (giây)</label>
+          <input type="number" id="newSongDuration" value="215" placeholder="Ví dụ: 215 (3 phút 35 giây)" class="w-full bg-spotify-card border border-spotify rounded-lg p-2.5 text-white focus:outline-none focus:border-spotify-green">
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-3 border-t border-spotify">
+          <button type="button" onclick="closeAddSongModal()" class="px-4 py-2 bg-spotify-card hover:bg-neutral-700 rounded-full font-semibold transition">Hủy</button>
+          <button type="submit" class="px-5 py-2 bg-spotify-green hover:bg-[#1ed760] text-black font-bold rounded-full transition shadow-lg flex items-center gap-2">
+            <i class="fa-solid fa-check"></i> Lưu Vào CSDL
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Lyrics Modal -->
+  <div id="editLyricsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-spotify-surface border border-spotify rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-spotify pb-3">
+        <div>
+          <h3 class="text-base font-bold text-yellow-400 flex items-center gap-2">
+            <i class="fa-solid fa-align-left"></i> Chỉnh Sửa Lời Bài Hát (Synced LRC)
+          </h3>
+          <p class="text-xs text-gray-400 mt-0.5">Bài hát: <span id="editSongTitle" class="text-white font-semibold">--</span></p>
+        </div>
+        <button onclick="closeEditLyricsModal()" class="text-gray-400 hover:text-white text-xl">&times;</button>
+      </div>
+
+      <form onsubmit="submitUpdateLyrics(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="editSongId">
+
+        <div>
+          <label class="block font-semibold text-gray-300 mb-1">Nội dung Lời bài hát kèm mốc thời gian (LRC Format)</label>
+          <textarea id="editSongLyricsText" rows="12" placeholder="[00:00.00]Giai điệu mở đầu...&#10;[00:15.20]Dòng lời 1...&#10;[00:20.50]Dòng lời 2..." class="w-full bg-spotify-card border border-spotify rounded-xl p-3 text-white font-mono text-xs focus:outline-none focus:border-spotify-green leading-relaxed"></textarea>
+          <div class="mt-2 text-[11px] text-gray-400 bg-black/40 p-2.5 rounded-lg border border-spotify space-y-1">
+            <div class="font-semibold text-spotify-green flex items-center gap-1.5">
+              <i class="fa-solid fa-circle-info"></i> Quy chuẩn định dạng LRC:
+            </div>
+            <div>• Cú pháp: <code>[phút:giây.mili] Lời bài hát</code> (Ví dụ: <code>[01:25.40] Rời xa vùng an toàn</code>)</div>
+            <div>• Trên Android: Lời bài hát sẽ <strong>tự động phát sáng và cuộn theo nhạc</strong>, đồng thời người dùng có thể <strong>chạm vào câu hát bất kỳ để tua nhạc</strong> đến đúng giây đó.</div>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-3 border-t border-spotify">
+          <button type="button" onclick="closeEditLyricsModal()" class="px-4 py-2 bg-spotify-card hover:bg-neutral-700 rounded-full font-semibold transition">Hủy</button>
+          <button type="submit" class="px-5 py-2 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-full transition shadow-lg flex items-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu Lời Bài Hát
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- Artist Songs Modal -->
+  <div id="artistSongsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-spotify-surface border border-spotify rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-spotify pb-3">
+        <div>
+          <h3 id="artistSongsModalTitle" class="text-lg font-bold text-spotify-green flex items-center gap-2">
+            <i class="fa-solid fa-microphone"></i> Danh sách bài hát của Nghệ sĩ
+          </h3>
+          <p id="artistSongsModalSubtitle" class="text-xs text-gray-400 mt-0.5">--</p>
+        </div>
+        <button onclick="closeArtistSongsModal()" class="text-gray-400 hover:text-white text-xl">&times;</button>
+      </div>
+
+      <div class="overflow-y-auto flex-1 rounded-xl border border-spotify bg-[#121212]">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-spotify-surface text-gray-400 text-xs uppercase tracking-wider border-b border-spotify sticky top-0">
+            <tr>
+              <th class="p-3">#</th>
+              <th class="p-3">Bài hát</th>
+              <th class="p-3">Thời lượng</th>
+              <th class="p-3">Lượt nghe</th>
+              <th class="p-3">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="artistSongsList" class="divide-y divide-spotify/40">
+            <!-- Dynamic Song Rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex justify-between items-center pt-3 border-t border-spotify">
+        <span class="text-xs text-gray-400">Bao gồm cả các bài hát chính và bài hát hợp tác (feat)</span>
+        <button type="button" onclick="closeArtistSongsModal()" class="px-5 py-2 bg-spotify-card hover:bg-neutral-700 text-white rounded-full font-semibold text-xs transition">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

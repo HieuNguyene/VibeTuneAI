@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/spotify_black">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="360dp"
+        android:background="@color/spotify_black">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsingToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:contentScrim="@color/spotify_black"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
+            app:statusBarScrim="@color/spotify_black"
+            app:titleEnabled="false">
+
+            <!-- Parallax Header Container with Gradient & Artist Info -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_player_gradient_placeholder"
+                app:layout_collapseMode="parallax">
+
+                <!-- Artist Avatar (Circular) -->
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/ivArtistAvatar"
+                    android:layout_width="140dp"
+                    android:layout_height="140dp"
+                    android:layout_marginTop="52dp"
+                    android:elevation="8dp"
+                    android:scaleType="centerCrop"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.Pill"
+                    tools:srcCompat="@android:drawable/ic_menu_gallery" />
+
+                <!-- Verified Badge & Label -->
+                <LinearLayout
+                    android:id="@+id/layoutVerified"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/ivArtistAvatar">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginEnd="6dp"
+                        android:src="@drawable/ic_check_circle"
+                        app:tint="@color/spotify_green" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Nghệ sĩ được xác minh"
+                        android:textColor="@color/spotify_green"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Artist Name -->
+                <TextView
+                    android:id="@+id/tvArtistName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_20dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginEnd="@dimen/spacing_20dp"
+                    android:ellipsize="end"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:textAppearance="@style/TextAppearance.Spotify.Headline"
+                    android:textSize="24sp"
+                    app:layout_constraintTop_toBottomOf="@id/layoutVerified"
+                    tools:text="Sơn Tùng M-TP" />
+
+                <!-- Artist Followers & Bio -->
+                <TextView
+                    android:id="@+id/tvArtistFollowers"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textAppearance="@style/TextAppearance.Spotify.Caption"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvArtistName"
+                    tools:text="1.250.000 người theo dõi hàng tháng" />
+
+                <TextView
+                    android:id="@+id/tvArtistBio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="32dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="32dp"
+                    android:ellipsize="end"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    app:layout_constraintTop_toBottomOf="@id/tvArtistFollowers"
+                    tools:text="Ca sĩ, nhạc sĩ người Thái Bình, Việt Nam." />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Sticky Toolbar when Collapsed -->
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbarArtist"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:layout_collapseMode="pin"
+                app:navigationIcon="@drawable/ic_arrow_back">
+
+                <TextView
+                    android:id="@+id/tvToolbarTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:alpha="0"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:textAppearance="@style/TextAppearance.Spotify.Title"
+                    tools:text="Sơn Tùng M-TP" />
+            </androidx.appcompat.widget.Toolbar>
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Main Scrollable Content: Action bar & Songs List -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollArtistContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/spacing_64dp">
+
+            <!-- Action Bar: Follow, More, Play All -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingTop="@dimen/spacing_12dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                android:paddingBottom="@dimen/spacing_12dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFollow"
+                    style="@style/Widget.Spotify.Button.Secondary"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:minHeight="36dp"
+                    android:paddingStart="16dp"
+                    android:paddingTop="0dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="0dp"
+                    android:text="Theo dõi"
+                    android:textSize="12sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <!-- Floating Round Spotify Green Play CTA -->
+                <ImageButton
+                    android:id="@+id/btnPlayAll"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/bg_circle_play_button"
+                    android:contentDescription="Phát tất cả"
+                    android:elevation="6dp"
+                    android:padding="@dimen/spacing_16dp"
+                    android:src="@drawable/ic_play_arrow"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="@color/black" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Section: Artist Albums -->
+            <LinearLayout
+                android:id="@+id/layoutArtistAlbums"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/spacing_16dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="@dimen/spacing_16dp"
+                    android:paddingBottom="8dp">
+
+                    <TextView
+                        android:id="@+id/tvAlbumsHeader"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Album &amp; Đĩa đơn"
+                        android:textAppearance="@style/TextAppearance.Spotify.Headline"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/tvAlbumsCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Spotify.Caption"
+                        android:textColor="@color/spotify_green"
+                        tools:text="2 album" />
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvArtistAlbums"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/spacing_16dp"
+                    android:paddingEnd="@dimen/spacing_16dp"
+                    tools:listitem="@layout/item_album_card" />
+            </LinearLayout>
+
+            <!-- Section Header: Songs -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:id="@+id/tvSectionHeader"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Bài hát phổ biến"
+                    android:textAppearance="@style/TextAppearance.Spotify.Headline"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/tvSongsCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Spotify.Caption"
+                    android:textColor="@color/spotify_green"
+                    tools:text="3 bài hát" />
+            </LinearLayout>
+
+            <!-- Shimmer Skeleton Loading State -->
+            <com.facebook.shimmer.ShimmerFrameLayout
+                android:id="@+id/shimmerArtistContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:shimmer_auto_start="true"
+                app:shimmer_base_color="@color/shimmer_base"
+                app:shimmer_highlight_color="@color/shimmer_highlight">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <include layout="@layout/item_shimmer_row" />
+                    <include layout="@layout/item_shimmer_row" />
+                    <include layout="@layout/item_shimmer_row" />
+                    <include layout="@layout/item_shimmer_row" />
+                    <include layout="@layout/item_shimmer_row" />
+                </LinearLayout>
+            </com.facebook.shimmer.ShimmerFrameLayout>
+
+            <!-- Empty State -->
+            <LinearLayout
+                android:id="@+id/layoutArtistEmptyState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/spacing_32dp"
+                android:paddingTop="36dp"
+                android:paddingEnd="@dimen/spacing_32dp"
+                android:paddingBottom="36dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:src="@drawable/ic_person"
+                    app:tint="@color/icon_inactive" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_12dp"
+                    android:text="Chưa có bài hát nào"
+                    android:textAppearance="@style/TextAppearance.Spotify.Headline"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_4dp"
+                    android:gravity="center"
+                    android:text="Nghệ sĩ chưa có bài hát nào trong hệ thống."
+                    android:textAppearance="@style/TextAppearance.Spotify.BodySecondary" />
+            </LinearLayout>
+
+            <!-- Songs RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvArtistTracks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                tools:itemCount="5"
+                tools:listitem="@layout/item_song_list_row" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

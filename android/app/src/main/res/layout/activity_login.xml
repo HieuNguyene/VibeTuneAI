@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/spotify_black"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/spacing_24dp"
+        android:paddingTop="@dimen/spacing_32dp"
+        android:paddingEnd="@dimen/spacing_24dp"
+        android:paddingBottom="@dimen/spacing_32dp">
+
+        <!-- Spotify Logo / Brand Icon -->
+        <ImageView
+            android:id="@+id/ivLoginLogo"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="@dimen/spacing_16dp"
+            android:contentDescription="Spotify Logo"
+            android:src="@drawable/ic_sparkle_ai"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/spotify_green" />
+
+        <!-- Title & Subtitle -->
+        <TextView
+            android:id="@+id/tvLoginTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_20dp"
+            android:gravity="center"
+            android:text="@string/login_title"
+            android:textAppearance="@style/TextAppearance.Spotify.Headline"
+            android:textSize="24sp"
+            app:layout_constraintTop_toBottomOf="@id/ivLoginLogo" />
+
+        <TextView
+            android:id="@+id/tvLoginSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:text="@string/login_subtitle"
+            android:textAppearance="@style/TextAppearance.Spotify.BodySecondary"
+            app:layout_constraintTop_toBottomOf="@id/tvLoginTitle" />
+
+        <!-- Social Login: Google -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnContinueGoogle"
+            style="@style/Widget.Spotify.Button.Secondary"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="@dimen/spacing_32dp"
+            android:text="@string/continue_with_google"
+            app:icon="@drawable/ic_google"
+            app:iconGravity="textStart"
+            app:iconTint="@null"
+            app:layout_constraintTop_toBottomOf="@id/tvLoginSubtitle" />
+
+        <!-- Divider with "HOẶC" -->
+        <LinearLayout
+            android:id="@+id/layoutDivider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_24dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/btnContinueGoogle">
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="@color/divider_color" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_12dp"
+                android:layout_marginEnd="@dimen/spacing_12dp"
+                android:text="@string/or_divider"
+                android:textAppearance="@style/TextAppearance.Spotify.Caption"
+                android:textColor="@color/icon_inactive"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:background="@color/divider_color" />
+        </LinearLayout>
+
+        <!-- Email Field -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilEmail"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_20dp"
+            android:hint="@string/hint_email"
+            android:textColorHint="@color/text_secondary"
+            app:boxBackgroundColor="@color/spotify_surface"
+            app:boxCornerRadiusBottomEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusBottomStart="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopStart="@dimen/corner_radius_card"
+            app:boxStrokeColor="@color/spotify_green"
+            app:boxStrokeWidth="1dp"
+            app:hintTextColor="@color/spotify_green"
+            app:layout_constraintTop_toBottomOf="@id/layoutDivider">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Password Field -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilPassword"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_16dp"
+            android:hint="@string/hint_password"
+            android:textColorHint="@color/text_secondary"
+            app:boxBackgroundColor="@color/spotify_surface"
+            app:boxCornerRadiusBottomEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusBottomStart="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopEnd="@dimen/corner_radius_card"
+            app:boxCornerRadiusTopStart="@dimen/corner_radius_card"
+            app:boxStrokeColor="@color/spotify_green"
+            app:boxStrokeWidth="1dp"
+            app:endIconMode="password_toggle"
+            app:endIconTint="@color/text_secondary"
+            app:hintTextColor="@color/spotify_green"
+            app:layout_constraintTop_toBottomOf="@id/tilEmail">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Forgot Password -->
+        <TextView
+            android:id="@+id/tvForgotPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_12dp"
+            android:background="?attr/selectableItemBackground"
+            android:padding="4dp"
+            android:text="@string/forgot_password"
+            android:textAppearance="@style/TextAppearance.Spotify.Caption"
+            android:textColor="@color/text_secondary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tilPassword" />
+
+        <!-- Login Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogin"
+            style="@style/Widget.Spotify.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="@dimen/spacing_24dp"
+            android:text="@string/btn_login"
+            app:layout_constraintTop_toBottomOf="@id/tvForgotPassword" />
+
+        <!-- Register Link Prompt -->
+        <LinearLayout
+            android:id="@+id/layoutRegisterPrompt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_32dp"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnLogin">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/no_account_prompt"
+                android:textAppearance="@style/TextAppearance.Spotify.BodySecondary" />
+
+            <TextView
+                android:id="@+id/tvGoToRegister"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/signup_free"
+                android:textAppearance="@style/TextAppearance.Spotify.Body"
+                android:textColor="@color/spotify_green"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>

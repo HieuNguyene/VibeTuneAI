@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_sheet_rounded"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/spacing_24dp">
+
+    <!-- Drag Handle -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/spacing_12dp"
+        android:layout_marginBottom="@dimen/spacing_12dp"
+        android:background="@drawable/bg_pill_indicator"
+        android:backgroundTint="@color/text_disabled" />
+
+    <!-- Playlist Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/spacing_20dp"
+        android:paddingEnd="@dimen/spacing_20dp"
+        android:paddingBottom="@dimen/spacing_12dp">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivPlaylistArt"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.CornerSmall"
+            tools:srcCompat="@android:drawable/ic_menu_gallery" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_16dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvPlaylistName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textAppearance="@style/TextAppearance.Spotify.Headline"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                tools:text="Tên danh sách phát" />
+
+            <TextView
+                android:id="@+id/tvPlaylistSubtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textAppearance="@style/TextAppearance.Spotify.Caption"
+                tools:text="Danh sách phát • Spotify" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider_color" />
+
+    <!-- Action Items -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/spacing_20dp"
+        android:paddingEnd="@dimen/spacing_20dp"
+        android:paddingTop="@dimen/spacing_8dp">
+
+        <!-- 1. Chia sẻ -->
+        <LinearLayout
+            android:id="@+id/itemPlaylistShare"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_share"
+                app:tint="@color/text_primary" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_weight="1"
+                android:text="Chia sẻ danh sách phát"
+                android:textAppearance="@style/TextAppearance.Spotify.Body"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <!-- 2. Tải xuống nghe ngoại tuyến -->
+        <LinearLayout
+            android:id="@+id/itemPlaylistDownload"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_check_circle"
+                app:tint="@color/text_primary" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_weight="1"
+                android:text="Tải xuống nghe ngoại tuyến"
+                android:textAppearance="@style/TextAppearance.Spotify.Body"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <!-- 3. Thêm vào hồ sơ cá nhân -->
+        <LinearLayout
+            android:id="@+id/itemPlaylistAddToProfile"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_person"
+                app:tint="@color/text_primary" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_weight="1"
+                android:text="Hiển thị trên hồ sơ của bạn"
+                android:textAppearance="@style/TextAppearance.Spotify.Body"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

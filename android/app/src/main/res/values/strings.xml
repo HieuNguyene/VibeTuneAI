@@ -1,0 +1,96 @@
+<resources>
+    <string name="app_name">Spotify Clone</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_home">Trang chủ</string>
+    <string name="nav_search">Tìm kiếm</string>
+    <string name="nav_library">Thư viện</string>
+    <string name="nav_ai">AI Assistant</string>
+
+    <!-- Home Screen -->
+    <string name="greeting_morning">Chào buổi sáng</string>
+    <string name="greeting_afternoon">Chào buổi chiều</string>
+    <string name="greeting_evening">Chào buổi tối</string>
+    <string name="chip_all">Tất cả</string>
+    <string name="chip_music">Âm nhạc</string>
+    <string name="chip_podcasts">Podcasts</string>
+    <string name="section_recently_played">Gần đây đã phát</string>
+    <string name="section_made_for_you">Dành riêng cho bạn</string>
+    <string name="section_popular_artists">Nghệ sĩ phổ biến</string>
+    <string name="section_recommended">Gợi ý hôm nay</string>
+
+    <!-- Player Screen -->
+    <string name="playing_from_playlist">PHÁT TỪ DANH SÁCH</string>
+    <string name="default_song_title">Bài hát chưa xác định</string>
+    <string name="default_artist_name">Nghệ sĩ</string>
+    <string name="time_zero">0:00</string>
+    <string name="lyrics_title">Lời bài hát</string>
+    <string name="queue_title">Danh sách chờ</string>
+
+    <!-- Search Screen -->
+    <string name="search_hint">Bạn muốn nghe gì?</string>
+    <string name="search_categories_title">Duyệt tìm tất cả</string>
+
+    <!-- AI Playlist Screen -->
+    <string name="ai_prompt_hint">Mô tả tâm trạng, thể loại hoặc bài hát bạn muốn nghe...</string>
+    <string name="ai_generate_button">Tạo Playlist với AI</string>
+    <string name="ai_generating_step_1">Đang phân tích tâm trạng âm nhạc...</string>
+    <string name="ai_generating_step_2">Đang chọn lọc bài hát phù hợp...</string>
+    <string name="ai_generating_step_3">Hoàn tất danh sách phát cho bạn!</string>
+
+    <!-- Empty and Error States -->
+    <string name="empty_library_title">Thư viện của bạn đang trống</string>
+    <string name="empty_library_subtitle">Khám phá và thả tim bài hát đầu tiên để lưu lại tại đây.</string>
+    <string name="error_network">Không thể kết nối máy chủ</string>
+    <string name="btn_retry">Thử lại</string>
+    <string name="btn_undo">Hoàn tác</string>
+
+    <!-- Auth & Profile -->
+    <string name="login_title">Đăng nhập vào Spotify</string>
+    <string name="login_subtitle">Hàng triệu bài hát miễn phí đang chờ đón bạn.</string>
+    <string name="continue_with_google">Tiếp tục bằng Google</string>
+    <string name="continue_with_facebook">Tiếp tục bằng Facebook</string>
+    <string name="or_divider">HOẶC</string>
+    <string name="hint_email">Email, SĐT hoặc tên người dùng</string>
+    <string name="hint_password">Mật khẩu</string>
+    <string name="hint_username">Tên hiển thị của bạn</string>
+    <string name="btn_login">Đăng nhập</string>
+    <string name="btn_register">Đăng ký tài khoản</string>
+    <string name="forgot_password">Quên mật khẩu?</string>
+    <string name="no_account_prompt">Chưa có tài khoản? </string>
+    <string name="signup_free">Đăng ký miễn phí</string>
+    <string name="have_account_prompt">Đã có tài khoản? </string>
+    <string name="login_now">Đăng nhập ngay</string>
+    <string name="register_title">Tạo tài khoản miễn phí</string>
+    <string name="register_subtitle">Bắt đầu khám phá âm nhạc không giới hạn.</string>
+    <string name="tab_phone">Số điện thoại</string>
+    <string name="tab_email">Email</string>
+    <string name="hint_phone">Số điện thoại</string>
+    <string name="hint_otp">Mã xác thực OTP (6 số)</string>
+    <string name="btn_send_otp">Gửi mã</string>
+
+    <!-- Profile & Logout -->
+    <string name="profile_title">Tài khoản của bạn</string>
+    <string name="premium_badge">Spotify Premium • Đã kích hoạt</string>
+    <string name="account_settings">Cài đặt tài khoản</string>
+    <string name="audio_quality">Chất lượng âm thanh</string>
+    <string name="offline_mode">Chế độ ngoại tuyến</string>
+    <string name="btn_logout">Đăng xuất</string>
+    <string name="logout_confirm_title">Xác nhận đăng xuất</string>
+    <string name="logout_confirm_message">Bạn có chắc chắn muốn đăng xuất khỏi tài khoản này?</string>
+    <string name="dialog_cancel">Hủy</string>
+
+    <!-- Profile Management -->
+    <string name="profile_edit_title">Chỉnh sửa hồ sơ</string>
+    <string name="profile_save_changes">Lưu thay đổi</string>
+    <string name="profile_avatar_hint">Chạm vào ảnh để đổi avatar</string>
+    <string name="profile_change_avatar">Chọn ảnh đại diện</string>
+    <string name="profile_choose_preset">Chọn từ bộ sưu tập</string>
+    <string name="profile_custom_url">Nhập link ảnh (URL)</string>
+    <string name="profile_change_password">Đổi mật khẩu</string>
+    <string name="profile_current_password">Mật khẩu hiện tại</string>
+    <string name="profile_new_password">Mật khẩu mới</string>
+    <string name="profile_confirm_password">Xác nhận mật khẩu mới</string>
+    <string name="profile_saved_success">Đã lưu thông tin hồ sơ thành công!</string>
+    <string name="profile_password_success">Đã đổi mật khẩu thành công!</string>
+</resources>

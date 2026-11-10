@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Spotify Core Theme Colors -->
+    <color name="spotify_black">#121212</color>
+    <color name="spotify_black_translucent">#CC121212</color>
+    <color name="spotify_surface">#181818</color>
+    <color name="spotify_elevated">#242424</color>
+    <color name="spotify_hover">#282828</color>
+    <color name="spotify_stroke">#333333</color>
+
+    <!-- Spotify Accent Colors -->
+    <color name="spotify_green">#1DB954</color>
+    <color name="spotify_green_light">#1ED760</color>
+    <color name="spotify_green_translucent">#261DB954</color>
+
+    <!-- Typography & Iconography -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B3B3B3</color>
+    <color name="text_disabled">#535353</color>
+    <color name="icon_inactive">#535353</color>
+    <color name="divider_color">#282828</color>
+
+    <!-- Player & Seekbar Colors -->
+    <color name="seekbar_track_background">#4DFFFFFF</color>
+    <color name="seekbar_track_progress">#1DB954</color>
+    <color name="seekbar_thumb">#FFFFFF</color>
+
+    <!-- MiniPlayer Background with slight alpha -->
+    <color name="mini_player_bg">#242424</color>
+
+    <!-- Skeleton Shimmer Placeholder Colors -->
+    <color name="shimmer_base">#282828</color>
+    <color name="shimmer_highlight">#3A3A3A</color>
+
+    <!-- Genre Discovery Category Colors -->
+    <color name="genre_pop">#8D67AB</color>
+    <color name="genre_hiphop">#BC5900</color>
+    <color name="genre_rock">#E91429</color>
+    <color name="genre_indie">#608108</color>
+    <color name="genre_electronic">#006450</color>
+    <color name="genre_chill">#2D46B9</color>
+    <color name="genre_rnb">#DC148C</color>
+    <color name="genre_jazz">#7D4B32</color>
+
+    <!-- AI Feature Gradient Colors -->
+    <color name="ai_gradient_start">#8E2DE2</color>
+    <color name="ai_gradient_end">#4A00E0</color>
+    <color name="ai_chip_bg">#208E2DE2</color>
+
+    <!-- System / Utility Colors -->
+    <color name="transparent">#00000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="error_red">#E91429</color>
+</resources>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/spacing_16dp"
+    android:paddingTop="@dimen/spacing_8dp"
+    android:paddingEnd="@dimen/spacing_16dp"
+    android:paddingBottom="@dimen/spacing_8dp">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivQueueArt"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.CornerSmall"
+        tools:srcCompat="@android:drawable/ic_menu_gallery" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvQueueTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textAppearance="@style/TextAppearance.Spotify.Body"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:text="Tên bài hát" />
+
+        <TextView
+            android:id="@+id/tvQueueArtist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textAppearance="@style/TextAppearance.Spotify.Caption"
+            tools:text="Tên ca sĩ" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/ivPlayingIndicator"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="@dimen/spacing_8dp"
+        android:contentDescription="Now Playing"
+        android:src="@drawable/ic_play_arrow"
+        android:visibility="gone"
+        app:tint="@color/spotify_green"
+        tools:visibility="visible" />
+
+</LinearLayout>
