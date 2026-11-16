@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="liquid_text_inactive">#D918293D</color>
+    <color name="liquid_glass_chip_bg">#DCEBF4FC</color>
+    <color name="liquid_glass_chip_stroke">#B8BDD4EA</color>
+    <color name="liquid_btn_primary_tint">#E00EA5E9</color>
+    <color name="liquid_btn_secondary_tint">#EBFFFFFF</color>
+    <color name="liquid_emerald_glow">#4D0EA5E9</color>
+</resources>

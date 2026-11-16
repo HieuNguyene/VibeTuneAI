@@ -119,22 +119,28 @@ public class SearchFragment extends Fragment {
     }
 
     private void loadBrowseCategories() {
-        ApiClient.getApiService().getHomeFeed().enqueue(new Callback<ApiResponse<HomeFeedData>>() {
+        ApiClient.getApiService().getGenres().enqueue(new Callback<ApiResponse<List<Genre>>>() {
             @Override
-            public void onResponse(@NonNull Call<ApiResponse<HomeFeedData>> call, @NonNull Response<ApiResponse<HomeFeedData>> response) {
+            public void onResponse(@NonNull Call<ApiResponse<List<Genre>>> call, @NonNull Response<ApiResponse<List<Genre>>> response) {
+                if (!isAdded() || binding == null) return;
                 if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
-                    List<Genre> genres = response.body().getData().getGenres();
-                    if (genres != null && !genres.isEmpty()) {
-                        genreCardAdapter.setGenres(genres);
-                    }
+                    genreCardAdapter.setGenres(response.body().getData());
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<ApiResponse<HomeFeedData>> call, @NonNull Throwable t) {
-                // Giữ im lặng nếu có lỗi mạng nhẹ khi tải thể loại
+            public void onFailure(@NonNull Call<ApiResponse<List<Genre>>> call, @NonNull Throwable t) {
+                // Giữ nguyên danh sách hiện tại nếu mất mạng tạm thời
             }
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (binding != null && binding.etSearchQuery.getText().toString().trim().isEmpty()) {
+            loadBrowseCategories();
+        }
     }
 
     private void performSearch(String query) {

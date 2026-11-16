@@ -42,7 +42,7 @@ public class MusicPlaybackService extends Service implements MusicPlayerManager.
     public static final String ACTION_NEXT = "com.example.spotifyclone.ACTION_NEXT";
     public static final String ACTION_STOP = "com.example.spotifyclone.ACTION_STOP";
 
-    public static final String CHANNEL_ID = "spotify_playback_channel";
+    public static final String CHANNEL_ID = "vibetune_playback_channel";
     public static final int NOTIFICATION_ID = 1001;
 
     private MediaSessionCompat mediaSession;
@@ -88,10 +88,10 @@ public class MusicPlaybackService extends Service implements MusicPlayerManager.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
-                    "Spotify Music Playback",
+                    "VibeTune Music Playback",
                     NotificationManager.IMPORTANCE_LOW
             );
-            channel.setDescription("Thanh thông báo điều khiển phát nhạc Spotify");
+            channel.setDescription("Thanh thông báo điều khiển phát nhạc VibeTune");
             channel.setShowBadge(false);
             channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             if (notificationManager != null) {
@@ -101,7 +101,7 @@ public class MusicPlaybackService extends Service implements MusicPlayerManager.
     }
 
     private void initMediaSession() {
-        mediaSession = new MediaSessionCompat(this, "SpotifyCloneMediaSession");
+        mediaSession = new MediaSessionCompat(this, "VibeTuneMediaSession");
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             @Override
             public void onPlay() {
@@ -181,7 +181,7 @@ public class MusicPlaybackService extends Service implements MusicPlayerManager.
         String coverUrl = MusicPlayerManager.getInstance().getCurrentCoverUrl();
 
         if (title.isEmpty()) {
-            title = "Spotify Clone";
+            title = "Đang phát nhạc";
         }
         if (artist.isEmpty()) {
             artist = "Sẵn sàng phát nhạc";
@@ -214,7 +214,7 @@ public class MusicPlaybackService extends Service implements MusicPlayerManager.
         boolean isPlaying = MusicPlayerManager.getInstance().isPlaying();
 
         if (title.isEmpty()) {
-            title = "Spotify Clone";
+            title = "Đang phát nhạc";
         }
         if (artist.isEmpty()) {
             artist = "Sẵn sàng phát nhạc";
@@ -248,7 +248,7 @@ public class MusicPlaybackService extends Service implements MusicPlayerManager.
                 .setSmallIcon(R.drawable.ic_play_arrow)
                 .setContentTitle(title)
                 .setContentText(artist)
-                .setSubText("Spotify Clone")
+                .setSubText("VibeTune")
                 .setContentIntent(contentPendingIntent)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOnlyAlertOnce(true)
@@ -297,6 +297,7 @@ public class MusicPlaybackService extends Service implements MusicPlayerManager.
         int state = isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED;
         long position = MusicPlayerManager.getInstance().getCurrentPosition();
 
+        float currentSpeed = MusicPlayerManager.getInstance().getPlaybackSpeed();
         PlaybackStateCompat playbackState = new PlaybackStateCompat.Builder()
                 .setActions(
                         PlaybackStateCompat.ACTION_PLAY |
@@ -307,7 +308,7 @@ public class MusicPlaybackService extends Service implements MusicPlayerManager.
                         PlaybackStateCompat.ACTION_STOP |
                         PlaybackStateCompat.ACTION_SEEK_TO
                 )
-                .setState(state, position, 1.0f)
+                .setState(state, position, currentSpeed)
                 .build();
         mediaSession.setPlaybackState(playbackState);
 
@@ -362,6 +363,14 @@ public class MusicPlaybackService extends Service implements MusicPlayerManager.
     @Override
     public void onSongChanged(Song song) {
         updateNotificationAndForeground();
+    }
+
+    @Override
+    public void onPlaybackSpeedChanged(float speed) {
+        String title = MusicPlayerManager.getInstance().getCurrentTitle();
+        String artist = MusicPlayerManager.getInstance().getCurrentArtist();
+        boolean isPlaying = MusicPlayerManager.getInstance().isPlaying();
+        updateMediaSession(title, artist, isPlaying);
     }
 
     @Nullable

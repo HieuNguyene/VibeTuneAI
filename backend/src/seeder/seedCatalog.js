@@ -832,6 +832,9 @@ const seedDatabase = async () => {
       await PlaylistTrack.insertMany(ptDocs);
     }
 
+    const ensureAdminUser = require('./ensureAdmin');
+    await ensureAdminUser();
+
     logger.success('====================================================');
     logger.success(` HOÀN TẤT! ĐÃ NẠP:`);
     logger.success(` - ${insertedGenres.length} Thể loại`);

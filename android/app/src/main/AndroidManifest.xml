@@ -11,7 +11,7 @@
     <application
         android:name=".SpotifyApp"
         android:allowBackup="true"
-        android:icon="@drawable/ic_sparkle_ai"
+        android:icon="@drawable/ic_app_icon"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.SpotifyClone"
@@ -38,14 +38,14 @@
         <!-- Login Activity -->
         <activity
             android:name=".presentation.auth.LoginActivity"
-            android:exported="true"
+            android:exported="false"
             android:theme="@style/Theme.SpotifyClone"
             android:windowSoftInputMode="adjustResize" />
 
         <!-- Register Activity -->
         <activity
             android:name=".presentation.auth.RegisterActivity"
-            android:exported="true"
+            android:exported="false"
             android:theme="@style/Theme.SpotifyClone"
             android:windowSoftInputMode="adjustResize" />
 
@@ -66,7 +66,21 @@
         <!-- Artist Detail Activity -->
         <activity
             android:name=".presentation.artist.ArtistDetailActivity"
-            android:exported="true"
+            android:exported="false"
+            android:theme="@style/Theme.SpotifyClone"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <!-- Listening History Activity (Lịch sử nhạc đã nghe theo ngày) -->
+        <activity
+            android:name=".presentation.history.ListeningHistoryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SpotifyClone"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <!-- Notification Activity (Thông báo theo ngày & chi tiết) -->
+        <activity
+            android:name=".presentation.notification.NotificationActivity"
+            android:exported="false"
             android:theme="@style/Theme.SpotifyClone"
             android:windowSoftInputMode="adjustNothing" />
 

@@ -7,7 +7,6 @@ const UserSchema = new mongoose.Schema(
     phoneNumber: { type: String, unique: true, sparse: true, trim: true },
     googleId: { type: String, unique: true, sparse: true },
     passwordHash: { type: String, select: false },
-    firebaseUid: { type: String, unique: true, sparse: true },
     displayName: { type: String, required: true, trim: true, maxlength: 100 },
     avatarUrl: { type: String, default: '' },
     role: { type: String, enum: ['user', 'artist', 'admin'], default: 'user' },

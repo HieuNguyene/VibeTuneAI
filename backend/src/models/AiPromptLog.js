@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const AiPromptLogSchema = new mongoose.Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false, default: null, index: true },
     userPrompt: { type: String, required: true, trim: true, maxlength: 500 },
     aiExtractedCriteria: {
       mood: [{ type: String }],

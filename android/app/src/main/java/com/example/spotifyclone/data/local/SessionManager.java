@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SessionManager {
-    private static final String PREF_NAME = "spotify_session_prefs";
+    private static final String PREF_NAME = "vibetune_session_prefs";
+    private static final String LEGACY_PREF_NAME = "spotify_session_prefs";
     private static final String KEY_TOKEN = "key_jwt_token";
     private static final String KEY_USER_ID = "key_user_id";
     private static final String KEY_USERNAME = "key_username";
@@ -18,12 +19,28 @@ public class SessionManager {
     private static final String KEY_DISPLAY_NAME = "key_display_name";
     private static final String KEY_AVATAR_URL = "key_avatar_url";
     private static final String KEY_ROLE = "key_role";
+    private static final String KEY_STREAMING_QUALITY = "key_streaming_quality";
 
     private static volatile SessionManager instance;
     private final SharedPreferences prefs;
 
     private SessionManager(Context context) {
-        prefs = context.getApplicationContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        Context appContext = context.getApplicationContext();
+        prefs = appContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        SharedPreferences legacyPrefs = appContext.getSharedPreferences(LEGACY_PREF_NAME, Context.MODE_PRIVATE);
+        if (legacyPrefs.contains(KEY_TOKEN) && !prefs.contains(KEY_TOKEN)) {
+            SharedPreferences.Editor editor = prefs.edit();
+            for (java.util.Map.Entry<String, ?> entry : legacyPrefs.getAll().entrySet()) {
+                Object val = entry.getValue();
+                if (val instanceof String) editor.putString(entry.getKey(), (String) val);
+                else if (val instanceof Boolean) editor.putBoolean(entry.getKey(), (Boolean) val);
+                else if (val instanceof Integer) editor.putInt(entry.getKey(), (Integer) val);
+                else if (val instanceof Long) editor.putLong(entry.getKey(), (Long) val);
+                else if (val instanceof Float) editor.putFloat(entry.getKey(), (Float) val);
+            }
+            editor.apply();
+            legacyPrefs.edit().clear().apply();
+        }
     }
 
     public static SessionManager getInstance(Context context) {
@@ -47,6 +64,9 @@ public class SessionManager {
             editor.putString(KEY_DISPLAY_NAME, user.getDisplayName());
             editor.putString(KEY_AVATAR_URL, user.getAvatarUrl());
             editor.putString(KEY_ROLE, user.getRole());
+            if (user.getStreamingQuality() != null && !user.getStreamingQuality().isEmpty()) {
+                editor.putString(KEY_STREAMING_QUALITY, user.getStreamingQuality());
+            }
         }
         editor.apply();
     }
@@ -88,7 +108,16 @@ public class SessionManager {
     }
 
     public void clearSession() {
-        prefs.edit().clear().apply();
+        prefs.edit()
+                .remove(KEY_TOKEN)
+                .remove(KEY_USER_ID)
+                .remove(KEY_USERNAME)
+                .remove(KEY_EMAIL)
+                .remove(KEY_DISPLAY_NAME)
+                .remove(KEY_AVATAR_URL)
+                .remove(KEY_ROLE)
+                .remove(KEY_RECENT_SONGS)
+                .apply();
     }
 
     private static final String KEY_RECENT_SONGS = "key_recent_songs_json";
@@ -122,5 +151,84 @@ public class SessionManager {
         } catch (Exception e) {
             return new java.util.ArrayList<>();
         }
+    }
+
+    public synchronized void removeRecentlyPlayedSong(String songId) {
+        if (songId == null || songId.isEmpty()) return;
+        java.util.List<com.example.spotifyclone.data.model.Song> list = getRecentlyPlayedSongs();
+        java.util.List<com.example.spotifyclone.data.model.Song> filtered = new java.util.ArrayList<>();
+        for (com.example.spotifyclone.data.model.Song s : list) {
+            if (s != null && !songId.equals(s.getId())) {
+                filtered.add(s);
+            }
+        }
+        prefs.edit().putString(KEY_RECENT_SONGS, new com.google.gson.Gson().toJson(filtered)).apply();
+    }
+
+    public synchronized void removeRecentlyPlayedSongs(java.util.Collection<String> songIds) {
+        if (songIds == null || songIds.isEmpty()) return;
+        java.util.Set<String> idSet = new java.util.HashSet<>(songIds);
+        java.util.List<com.example.spotifyclone.data.model.Song> list = getRecentlyPlayedSongs();
+        java.util.List<com.example.spotifyclone.data.model.Song> filtered = new java.util.ArrayList<>();
+        for (com.example.spotifyclone.data.model.Song s : list) {
+            if (s != null && !idSet.contains(s.getId())) {
+                filtered.add(s);
+            }
+        }
+        prefs.edit().putString(KEY_RECENT_SONGS, new com.google.gson.Gson().toJson(filtered)).apply();
+    }
+
+    public synchronized void clearRecentlyPlayedSongs() {
+        prefs.edit().remove(KEY_RECENT_SONGS).apply();
+    }
+
+    public synchronized void syncRecentlyPlayedMetadata(java.util.Collection<Song> latestCatalogSongs) {
+        if (latestCatalogSongs == null || latestCatalogSongs.isEmpty()) return;
+        java.util.List<Song> list = getRecentlyPlayedSongs();
+        if (list.isEmpty()) return;
+        java.util.Map<String, Song> latestMap = new java.util.HashMap<>();
+        for (Song fresh : latestCatalogSongs) {
+            if (fresh != null && fresh.getId() != null && !fresh.getId().isEmpty()) {
+                latestMap.put(fresh.getId(), fresh);
+            }
+        }
+        if (latestMap.isEmpty()) return;
+        boolean changed = false;
+        for (int i = 0; i < list.size(); i++) {
+            Song cached = list.get(i);
+            if (cached == null || cached.getId() == null) continue;
+            Song fresh = latestMap.get(cached.getId());
+            if (fresh != null) {
+                list.set(i, fresh);
+                changed = true;
+            }
+        }
+        if (changed) {
+            prefs.edit().putString(KEY_RECENT_SONGS, new com.google.gson.Gson().toJson(list)).apply();
+        }
+    }
+
+    private static final String KEY_SERVER_URL = "key_server_url";
+
+    public void setCustomServerUrl(String url) {
+        if (url != null && !url.trim().isEmpty()) {
+            prefs.edit().putString(KEY_SERVER_URL, url.trim()).apply();
+        } else {
+            prefs.edit().remove(KEY_SERVER_URL).apply();
+        }
+    }
+
+    public String getCustomServerUrl() {
+        return prefs.getString(KEY_SERVER_URL, null);
+    }
+
+    public void saveStreamingQuality(String quality) {
+        if (quality != null && !quality.trim().isEmpty()) {
+            prefs.edit().putString(KEY_STREAMING_QUALITY, quality.trim()).apply();
+        }
+    }
+
+    public String getStreamingQuality() {
+        return prefs.getString(KEY_STREAMING_QUALITY, "normal");
     }
 }

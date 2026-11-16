@@ -29,11 +29,20 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
         void onSongClick(Song song);
     }
 
+    public interface OnSongActionListener {
+        void onSongMoreClick(Song song, int position);
+    }
+
     private final List<Song> songList = new ArrayList<>();
     private final OnSearchSongClickListener listener;
+    private OnSongActionListener actionListener;
 
     public SearchResultAdapter(OnSearchSongClickListener listener) {
         this.listener = listener;
+    }
+
+    public void setOnSongActionListener(OnSongActionListener actionListener) {
+        this.actionListener = actionListener;
     }
 
     public void setSongs(List<Song> songs) {
@@ -125,9 +134,13 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
             });
 
             binding.btnSongMore.setOnClickListener(v -> {
-                SongOptionsBottomSheetDialog.show(itemView.getContext(), song, isLiked -> {
-                    updateFavoriteUi(isLiked);
-                });
+                if (actionListener != null) {
+                    actionListener.onSongMoreClick(song, getAdapterPosition());
+                } else {
+                    SongOptionsBottomSheetDialog.show(itemView.getContext(), song, isLiked -> {
+                        updateFavoriteUi(isLiked);
+                    });
+                }
             });
 
             itemView.setOnClickListener(v -> {

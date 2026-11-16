@@ -23,6 +23,7 @@
 
             <!-- Parallax Header Container with Gradient & Artist Info -->
             <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutArtistHeaderParallax"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/bg_player_gradient_placeholder"
@@ -34,7 +35,7 @@
                     android:layout_width="140dp"
                     android:layout_height="140dp"
                     android:layout_marginTop="52dp"
-                    android:elevation="8dp"
+                    android:elevation="2dp"
                     android:scaleType="centerCrop"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -120,6 +121,7 @@
                 android:id="@+id/toolbarArtist"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
+                android:elevation="10dp"
                 app:layout_collapseMode="pin"
                 app:navigationIcon="@drawable/ic_arrow_back">
 
@@ -156,6 +158,8 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:paddingStart="@dimen/spacing_16dp"
                 android:paddingTop="@dimen/spacing_12dp"
                 android:paddingEnd="@dimen/spacing_16dp"
@@ -165,8 +169,8 @@
                     android:id="@+id/btnFollow"
                     style="@style/Widget.Spotify.Button.Secondary"
                     android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:minHeight="36dp"
+                    android:layout_height="38dp"
+                    android:minHeight="38dp"
                     android:paddingStart="16dp"
                     android:paddingTop="0dp"
                     android:paddingEnd="16dp"
@@ -184,13 +188,14 @@
                     android:layout_height="56dp"
                     android:background="@drawable/bg_circle_play_button"
                     android:contentDescription="Phát tất cả"
-                    android:elevation="6dp"
+                    android:elevation="8dp"
                     android:padding="@dimen/spacing_16dp"
                     android:src="@drawable/ic_play_arrow"
+                    android:stateListAnimator="@animator/btn_tactile_raise"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@color/black" />
+                    app:tint="@color/on_primary_accent" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -274,6 +279,84 @@
                     tools:text="3 bài hát" />
             </LinearLayout>
 
+            <!-- Sort Chips Bar for Artist Songs -->
+            <HorizontalScrollView
+                android:id="@+id/scrollArtistSortChips"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="12dp"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                android:paddingBottom="6dp"
+                android:scrollbars="none"
+                android:overScrollMode="never">
+
+                <com.example.spotifyclone.ui.liquid.LiquidPillRow
+                    android:id="@+id/pillRowArtistSort"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clipChildren="false"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/chipSortPopular"
+                        style="@style/Widget.Spotify.Chip.Raised"
+                        android:layout_width="wrap_content"
+                        android:layout_height="34dp"
+                        android:layout_marginEnd="@dimen/spacing_8dp"
+                        android:gravity="center"
+                        android:paddingStart="@dimen/spacing_16dp"
+                        android:paddingEnd="@dimen/spacing_16dp"
+                        android:text="Nghe nhiều nhất"
+                        android:textColor="@color/on_primary_accent"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/chipSortAz"
+                        style="@style/Widget.Spotify.Chip.Raised"
+                        android:layout_width="wrap_content"
+                        android:layout_height="34dp"
+                        android:layout_marginEnd="@dimen/spacing_8dp"
+                        android:gravity="center"
+                        android:paddingStart="@dimen/spacing_16dp"
+                        android:paddingEnd="@dimen/spacing_16dp"
+                        android:text="A - Z"
+                        android:textColor="@color/liquid_text_inactive"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/chipSortNewest"
+                        style="@style/Widget.Spotify.Chip.Raised"
+                        android:layout_width="wrap_content"
+                        android:layout_height="34dp"
+                        android:layout_marginEnd="@dimen/spacing_8dp"
+                        android:gravity="center"
+                        android:paddingStart="@dimen/spacing_16dp"
+                        android:paddingEnd="@dimen/spacing_16dp"
+                        android:text="Mới nhất"
+                        android:textColor="@color/liquid_text_inactive"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/chipSortFavorite"
+                        style="@style/Widget.Spotify.Chip.Raised"
+                        android:layout_width="wrap_content"
+                        android:layout_height="34dp"
+                        android:gravity="center"
+                        android:paddingStart="@dimen/spacing_16dp"
+                        android:paddingEnd="@dimen/spacing_16dp"
+                        android:text="Yêu thích nhất"
+                        android:textColor="@color/liquid_text_inactive"
+                        android:textSize="12sp" />
+
+                </com.example.spotifyclone.ui.liquid.LiquidPillRow>
+            </HorizontalScrollView>
+
             <!-- Shimmer Skeleton Loading State -->
             <com.facebook.shimmer.ShimmerFrameLayout
                 android:id="@+id/shimmerArtistContainer"
@@ -338,7 +421,9 @@
                 android:id="@+id/rvArtistTracks"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:clipToPadding="false"
                 android:nestedScrollingEnabled="false"
+                android:paddingBottom="96dp"
                 tools:itemCount="5"
                 tools:listitem="@layout/item_song_list_row" />
 

@@ -29,62 +29,158 @@
             android:id="@+id/btnCreatePlaylist"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="@drawable/bg_circle_icon"
             android:contentDescription="Create Playlist"
+            android:elevation="5dp"
             android:padding="@dimen/spacing_8dp"
             android:src="@android:drawable/ic_input_add"
-            app:tint="@color/white" />
+            android:stateListAnimator="@animator/btn_tactile_raise"
+            app:tint="@color/icon_primary" />
     </LinearLayout>
 
-    <!-- Library Filter Chips -->
-    <LinearLayout
+    <!-- Library Filter Chips (Horizontal Scrollable) -->
+    <HorizontalScrollView
         android:id="@+id/layoutLibraryChips"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/spacing_16dp"
         android:layout_marginTop="@dimen/spacing_16dp"
-        android:layout_marginEnd="@dimen/spacing_16dp"
-        android:orientation="horizontal"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:scrollbars="none"
+        android:overScrollMode="never"
         app:layout_constraintTop_toBottomOf="@id/layoutLibraryHeader">
 
-        <TextView
-            android:id="@+id/chipPlaylists"
+        <com.example.spotifyclone.ui.liquid.LiquidPillRow
+            android:id="@+id/pillRowLibrary"
             android:layout_width="wrap_content"
-            android:layout_height="32dp"
-            android:layout_marginEnd="@dimen/spacing_8dp"
-            android:background="@drawable/bg_pill_inactive"
-            android:gravity="center"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:orientation="horizontal"
             android:paddingStart="@dimen/spacing_16dp"
+            android:paddingTop="4dp"
             android:paddingEnd="@dimen/spacing_16dp"
-            android:text="Danh sách phát"
-            android:textColor="@color/text_primary"
-            android:textSize="12sp" />
+            android:paddingBottom="6dp">
 
-        <TextView
-            android:id="@+id/chipArtists"
-            android:layout_width="wrap_content"
-            android:layout_height="32dp"
-            android:layout_marginEnd="@dimen/spacing_8dp"
-            android:background="@drawable/bg_pill_inactive"
-            android:gravity="center"
-            android:paddingStart="@dimen/spacing_16dp"
-            android:paddingEnd="@dimen/spacing_16dp"
-            android:text="Nghệ sĩ"
-            android:textColor="@color/text_primary"
-            android:textSize="12sp" />
+            <TextView
+                android:id="@+id/chipPlaylists"
+                style="@style/Widget.Spotify.Chip.Raised"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="@dimen/spacing_8dp"
+                android:gravity="center"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                android:text="Playlist"
+                android:textColor="@color/liquid_text_inactive"
+                android:textSize="12sp" />
 
-        <TextView
-            android:id="@+id/chipAlbums"
+            <TextView
+                android:id="@+id/chipArtists"
+                style="@style/Widget.Spotify.Chip.Raised"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="@dimen/spacing_8dp"
+                android:gravity="center"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                android:text="Nghệ sĩ"
+                android:textColor="@color/liquid_text_inactive"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/chipAlbums"
+                style="@style/Widget.Spotify.Chip.Raised"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="@dimen/spacing_8dp"
+                android:gravity="center"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                android:text="Album"
+                android:textColor="@color/liquid_text_inactive"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/chipSongs"
+                style="@style/Widget.Spotify.Chip.Raised"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:gravity="center"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                android:text="Âm nhạc"
+                android:textColor="@color/liquid_text_inactive"
+                android:textSize="12sp" />
+        </com.example.spotifyclone.ui.liquid.LiquidPillRow>
+    </HorizontalScrollView>
+
+    <!-- Playlist Sub-selection Filter (Selection Button Group: Tất cả, Playlist cá nhân, Playlist yêu thích) -->
+    <HorizontalScrollView
+        android:id="@+id/layoutPlaylistSubFilters"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_8dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:scrollbars="none"
+        android:overScrollMode="never"
+        android:visibility="visible"
+        app:layout_constraintTop_toBottomOf="@id/layoutLibraryChips">
+
+        <LinearLayout
+            android:id="@+id/segmentedPlaylistSubGroup"
             android:layout_width="wrap_content"
-            android:layout_height="32dp"
-            android:background="@drawable/bg_pill_inactive"
-            android:gravity="center"
-            android:paddingStart="@dimen/spacing_16dp"
-            android:paddingEnd="@dimen/spacing_16dp"
-            android:text="Album"
-            android:textColor="@color/text_primary"
-            android:textSize="12sp" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_16dp"
+            android:layout_marginEnd="@dimen/spacing_16dp"
+            android:background="@drawable/bg_selection_button_group"
+            android:orientation="horizontal"
+            android:padding="3dp">
+
+            <TextView
+                android:id="@+id/chipSubAll"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                android:text="Tất cả"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_selection_button_active"
+                android:textColor="@color/selection_active_text"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/chipSubPersonal"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                android:text="Playlist cá nhân"
+                android:textSize="12sp"
+                android:background="@drawable/bg_selection_button_inactive"
+                android:textColor="@color/selection_inactive_text"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/chipSubFavorite"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                android:text="Playlist yêu thích"
+                android:textSize="12sp"
+                android:background="@drawable/bg_selection_button_inactive"
+                android:textColor="@color/selection_inactive_text"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <!-- Shimmer Skeleton Loading State -->
     <com.facebook.shimmer.ShimmerFrameLayout
@@ -94,7 +190,7 @@
         android:layout_marginTop="@dimen/spacing_12dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutLibraryChips"
+        app:layout_constraintTop_toBottomOf="@id/layoutPlaylistSubFilters"
         app:shimmer_auto_start="true"
         app:shimmer_base_color="@color/shimmer_base"
         app:shimmer_highlight_color="@color/shimmer_highlight">
@@ -119,10 +215,10 @@
         android:layout_height="0dp"
         android:layout_marginTop="@dimen/spacing_12dp"
         android:clipToPadding="false"
-        android:paddingBottom="84dp"
+        android:paddingBottom="144dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutLibraryChips"
+        app:layout_constraintTop_toBottomOf="@id/layoutPlaylistSubFilters"
         tools:listitem="@layout/item_song_list_row" />
 
     <!-- EMPTY STATE PATTERN -->
@@ -135,7 +231,7 @@
         android:padding="@dimen/spacing_32dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutLibraryChips">
+        app:layout_constraintTop_toBottomOf="@id/layoutPlaylistSubFilters">
 
         <ImageView
             android:id="@+id/ivLibraryEmptyIcon"

@@ -5,21 +5,20 @@
     android:id="@+id/miniPlayerRoot"
     android:layout_width="match_parent"
     android:layout_height="@dimen/mini_player_height"
-    android:layout_marginStart="@dimen/spacing_8dp"
-    android:layout_marginEnd="@dimen/spacing_8dp"
-    android:layout_marginBottom="@dimen/spacing_4dp"
     android:background="@drawable/bg_mini_player"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
     android:visibility="gone">
 
-    <!-- Top mini progress bar (2dp) -->
+    <!-- Top mini progress bar (2dp) inset inside rounded glass rim -->
     <ProgressBar
         android:id="@+id/miniPlayerProgressBar"
         style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="2dp"
+        android:layout_marginStart="18dp"
+        android:layout_marginEnd="18dp"
         android:max="1000"
         android:progress="350"
         android:progressDrawable="@drawable/seekbar_progress"
@@ -107,6 +106,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/miniPlayerProgressBar"
-        app:tint="@color/white" />
+        app:tint="@color/icon_primary" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

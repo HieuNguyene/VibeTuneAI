@@ -59,11 +59,22 @@ public class Album implements Serializable {
         return artist != null && artist.getName() != null ? artist.getName() : "Nhiều nghệ sĩ";
     }
 
+    @SerializedName("isFavorite")
+    private boolean isFavorite;
+
     public List<Song> getTracks() {
         return tracks != null ? tracks : new ArrayList<>();
     }
 
     public void setTracks(List<Song> tracks) {
         this.tracks = tracks;
+    }
+
+    public boolean isFavorite() {
+        return isFavorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        isFavorite = favorite;
     }
 }

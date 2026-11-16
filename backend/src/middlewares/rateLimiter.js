@@ -1,12 +1,16 @@
 const rateLimit = require('express-rate-limit');
-const ApiResponse = require('../utils/ApiResponse');
 
 /**
- * General API Rate Limiter: 200 requests per 15 minutes
+ * General API Rate Limiter: 1000 requests per 15 minutes (bỏ qua audio streaming byte-range & Web Admin)
  */
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 200,
+  max: 1000,
+  skip: (req) => {
+    const url = req.originalUrl || '';
+    const isTestBypass = process.env.NODE_ENV === 'test' && req.headers['x-test-suite'] === 'true';
+    return url.includes('/stream') || url.includes('/admin') || url.includes('/health') || isTestBypass;
+  },
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -36,7 +40,8 @@ const authLimiter = rateLimit({
  */
 const aiLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
-  max: 10,
+  max: process.env.NODE_ENV === 'test' ? 500 : 60,
+  skip: (req) => process.env.NODE_ENV === 'test' && req.headers['x-test-suite'] === 'true',
   standardHeaders: true,
   legacyHeaders: false,
   message: {

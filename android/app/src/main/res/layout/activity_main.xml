@@ -26,42 +26,45 @@
         android:layout_height="0dp"
         app:defaultNavHost="true"
         app:layout_constraintTop_toBottomOf="@id/statusBarSpacer"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigationContainer"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:navGraph="@navigation/nav_graph" />
 
-    <!-- Persistent Bottom Section (MiniPlayer + BottomNav) -->
+    <!-- Floating Translucent Liquid-Glass Bottom Section (MiniPlayer + 3D Water-Droplet NavBar) -->
     <LinearLayout
         android:id="@+id/bottomNavigationContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/spotify_black"
+        android:background="@android:color/transparent"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:elevation="12dp"
         android:orientation="vertical"
+        android:paddingStart="12dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <!-- MiniPlayer Inclusion -->
-        <include
-            android:id="@+id/includedMiniPlayer"
-            layout="@layout/layout_mini_player" />
-
-        <!-- Bottom Navigation Bar -->
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottomNavigationView"
+        <com.example.spotifyclone.ui.liquid.LiquidGlassMiniPlayerFrame
+            android:id="@+id/miniPlayerGlassFrame"
             android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:background="@color/spotify_black"
-            app:paddingBottomSystemWindowInsets="false"
-            app:paddingTopSystemWindowInsets="false"
-            app:itemIconSize="22dp"
-            app:itemIconTint="@color/selector_nav_tint"
-            app:itemTextColor="@color/selector_nav_tint"
-            app:itemTextAppearanceActive="@style/TextAppearance.Spotify.BottomNav.Active"
-            app:itemTextAppearanceInactive="@style/TextAppearance.Spotify.BottomNav.Inactive"
-            app:labelVisibilityMode="labeled"
-            app:menu="@menu/bottom_nav_menu" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone">
+
+            <include
+                android:id="@+id/includedMiniPlayer"
+                layout="@layout/layout_mini_player" />
+        </com.example.spotifyclone.ui.liquid.LiquidGlassMiniPlayerFrame>
+
+        <com.example.spotifyclone.ui.liquid.LiquidDropletNavBar
+            android:id="@+id/liquidNavBar"
+            android:layout_width="match_parent"
+            android:layout_height="66dp"
+            android:layout_marginBottom="10dp" />
 
     </LinearLayout>
 

@@ -10,7 +10,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="@dimen/spacing_32dp">
+        android:paddingBottom="144dp">
 
         <!-- Top Header: Greeting & Profile Avatar -->
         <TextView
@@ -19,13 +19,47 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/spacing_16dp"
             android:layout_marginTop="@dimen/spacing_24dp"
-            android:layout_marginEnd="@dimen/spacing_16dp"
+            android:layout_marginEnd="@dimen/spacing_12dp"
             android:text="@string/greeting_morning"
             android:textAppearance="@style/TextAppearance.Spotify.Headline"
-            app:layout_constraintEnd_toStartOf="@id/ivProfileAvatar"
+            app:layout_constraintEnd_toStartOf="@id/btnNotificationBell"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Chào buổi sáng" />
+
+        <!-- Notification Bell Container (Directly to the left of ivProfileAvatar) -->
+        <FrameLayout
+            android:id="@+id/btnNotificationBell"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/bg_bell_circle_normal"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Thông báo"
+            app:layout_constraintBottom_toBottomOf="@id/ivProfileAvatar"
+            app:layout_constraintEnd_toStartOf="@id/ivProfileAvatar"
+            app:layout_constraintTop_toTopOf="@id/ivProfileAvatar">
+
+            <ImageView
+                android:id="@+id/ivBellIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_notification_bell"
+                app:tint="@color/text_primary" />
+
+            <View
+                android:id="@+id/viewBellUnreadDot"
+                android:layout_width="9dp"
+                android:layout_height="9dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="5dp"
+                android:background="@drawable/bg_unread_dot"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </FrameLayout>
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivProfileAvatar"
@@ -40,63 +74,94 @@
             app:layout_constraintTop_toTopOf="@id/tvGreeting"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.Pill" />
 
-        <!-- Category Filter Chips -->
+        <!-- Category Filter Chips (3D Tactile Raised Controls) -->
         <HorizontalScrollView
             android:id="@+id/scrollChips"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_16dp"
+            android:clipChildren="false"
             android:clipToPadding="false"
             android:paddingStart="@dimen/spacing_16dp"
+            android:paddingTop="4dp"
             android:paddingEnd="@dimen/spacing_16dp"
+            android:paddingBottom="6dp"
             android:scrollbars="none"
             app:layout_constraintTop_toBottomOf="@id/tvGreeting">
 
-            <LinearLayout
+            <com.example.spotifyclone.ui.liquid.LiquidPillRow
+                android:id="@+id/pillRowMain"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:clipChildren="false"
                 android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/chipAll"
+                    style="@style/Widget.Spotify.Chip.Raised"
                     android:layout_width="wrap_content"
-                    android:layout_height="32dp"
+                    android:layout_height="36dp"
                     android:layout_marginEnd="@dimen/spacing_8dp"
-                    android:background="@drawable/bg_pill_active"
                     android:gravity="center"
                     android:paddingStart="@dimen/spacing_16dp"
                     android:paddingEnd="@dimen/spacing_16dp"
-                    android:text="@string/chip_all"
-                    android:textColor="@color/black"
+                    android:text="Tất cả"
+                    android:textColor="@color/white"
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/chipMusic"
+                    style="@style/Widget.Spotify.Chip.Raised"
                     android:layout_width="wrap_content"
-                    android:layout_height="32dp"
+                    android:layout_height="36dp"
                     android:layout_marginEnd="@dimen/spacing_8dp"
-                    android:background="@drawable/bg_pill_inactive"
                     android:gravity="center"
                     android:paddingStart="@dimen/spacing_16dp"
                     android:paddingEnd="@dimen/spacing_16dp"
-                    android:text="@string/chip_music"
-                    android:textColor="@color/text_primary"
+                    android:text="Âm nhạc"
+                    android:textColor="@color/liquid_text_inactive"
                     android:textSize="12sp" />
 
                 <TextView
-                    android:id="@+id/chipPodcasts"
+                    android:id="@+id/chipArtists"
+                    style="@style/Widget.Spotify.Chip.Raised"
                     android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:background="@drawable/bg_pill_inactive"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="@dimen/spacing_8dp"
                     android:gravity="center"
                     android:paddingStart="@dimen/spacing_16dp"
                     android:paddingEnd="@dimen/spacing_16dp"
-                    android:text="@string/chip_podcasts"
-                    android:textColor="@color/text_primary"
+                    android:text="Nghệ sĩ"
+                    android:textColor="@color/liquid_text_inactive"
                     android:textSize="12sp" />
 
-            </LinearLayout>
+                <TextView
+                    android:id="@+id/chipPlaylists"
+                    style="@style/Widget.Spotify.Chip.Raised"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="@dimen/spacing_8dp"
+                    android:gravity="center"
+                    android:paddingStart="@dimen/spacing_16dp"
+                    android:paddingEnd="@dimen/spacing_16dp"
+                    android:text="Playlist"
+                    android:textColor="@color/liquid_text_inactive"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/chipAlbums"
+                    style="@style/Widget.Spotify.Chip.Raised"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:gravity="center"
+                    android:paddingStart="@dimen/spacing_16dp"
+                    android:paddingEnd="@dimen/spacing_16dp"
+                    android:text="Album"
+                    android:textColor="@color/liquid_text_inactive"
+                    android:textSize="12sp" />
+
+            </com.example.spotifyclone.ui.liquid.LiquidPillRow>
         </HorizontalScrollView>
 
         <!-- Shimmer Skeleton Loading View -->
@@ -185,52 +250,663 @@
             </LinearLayout>
         </com.facebook.shimmer.ShimmerFrameLayout>
 
-        <!-- Dedicated Empty State for Podcasts -->
+        <!-- Error & Offline Connection State Container -->
         <LinearLayout
-            android:id="@+id/layoutPodcastsEmptyState"
+            android:id="@+id/layoutConnectionError"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="24dp"
+            android:background="@drawable/bg_creator_readonly"
             android:gravity="center"
             android:orientation="vertical"
-            android:paddingStart="@dimen/spacing_32dp"
-            android:paddingTop="56dp"
-            android:paddingEnd="@dimen/spacing_32dp"
-            android:paddingBottom="56dp"
+            android:padding="24dp"
             android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@id/scrollChips">
 
             <ImageView
-                android:layout_width="64dp"
-                android:layout_height="64dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:src="@drawable/ic_devices"
-                app:tint="@color/icon_inactive" />
+                app:tint="@color/spotify_green" />
 
             <TextView
+                android:id="@+id/tvErrorTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_16dp"
-                android:text="Chưa có nội dung Podcast"
+                android:layout_marginTop="14dp"
+                android:text="Chưa kết nối được Máy chủ"
                 android:textAppearance="@style/TextAppearance.Spotify.Headline"
-                android:textSize="20sp" />
+                android:textColor="@color/text_primary" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/tvErrorMessage"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_8dp"
+                android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:text="Hệ thống đang chuẩn bị các kênh Podcast hấp dẫn nhất. Hãy thưởng thức các danh sách âm nhạc tuyển chọn ngay bây giờ!"
-                android:textAppearance="@style/TextAppearance.Spotify.BodySecondary" />
+                android:lineSpacingExtra="3dp"
+                android:text="Không thể tải dữ liệu từ máy chủ backend. Vui lòng đảm bảo điện thoại và máy tính kết nối CÙNG mạng Wi-Fi và máy chủ đang chạy."
+                android:textAppearance="@style/TextAppearance.Spotify.Body"
+                android:textColor="@color/text_secondary" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnBackToMusic"
-                style="@style/Widget.Spotify.Button.Primary"
+            <TextView
+                android:id="@+id/tvCurrentServerUrl"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_24dp"
-                android:text="Khám phá âm nhạc" />
+                android:layout_marginTop="8dp"
+                android:text="Máy chủ: http://192.168.1.9:5000/"
+                android:textAppearance="@style/TextAppearance.Spotify.Caption"
+                android:textColor="@color/spotify_green" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRetryHome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:backgroundTint="@color/spotify_green"
+                    android:text="Thử lại"
+                    android:textColor="@color/spotify_black"
+                    app:cornerRadius="20dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnChangeServerIp"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Đổi IP máy chủ"
+                    android:textColor="@color/text_primary"
+                    app:cornerRadius="20dp"
+                    app:strokeColor="@color/text_secondary" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- Main Scrollable Content Container -->
+        <!-- ========================================== -->
+        <!-- TAB 2: Âm nhạc Container (Dropdown Genre Picker + Đang theo dõi) -->
+        <!-- ========================================== -->
+        <LinearLayout
+            android:id="@+id/layoutMusicContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/scrollChips">
+
+            <!-- Compact Control Bar: [Thể loại ▾] + [Đang theo dõi] -->
+            <LinearLayout
+                android:id="@+id/layoutMusicControlBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                android:paddingBottom="6dp">
+
+                <LinearLayout
+                    android:id="@+id/btnGenreDropdown"
+                    style="@style/Widget.Spotify.Chip.Raised"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn_3d_dropdown"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="12dp">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_tune"
+                        app:tint="@color/spotify_green" />
+
+                    <TextView
+                        android:id="@+id/tvSelectedGenreDropdown"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="Thể loại: Tất cả"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/ivGenreDropdownChevron"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_chevron_down"
+                        app:tint="@color/text_primary" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/chipMusicFollowing"
+                    style="@style/Widget.Spotify.Chip.Raised"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_pill_inactive"
+                    android:gravity="center"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="Đang theo dõi"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Collapsible Compact Genre Selector Drawer -->
+            <LinearLayout
+                android:id="@+id/cardGenreDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="@dimen/spacing_16dp"
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/bg_dropdown_panel_3d"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:elevation="12dp"
+                android:orientation="vertical"
+                android:paddingStart="12dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="10dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Chọn thể loại nhạc"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvGenreDropdownCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/spotify_green"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        tools:text="10 thể loại" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layoutGenreChips"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:orientation="vertical" />
+            </LinearLayout>
+
+            <!-- Compact "Đang theo dõi" Section in Music Tab -->
+            <LinearLayout
+                android:id="@+id/layoutMusicFollowingSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/spacing_16dp"
+                    android:paddingEnd="@dimen/spacing_16dp">
+
+                    <TextView
+                        android:id="@+id/tvMusicFollowingHeader"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Đang theo dõi"
+                        android:textAppearance="@style/TextAppearance.Spotify.Title" />
+
+                    <TextView
+                        android:id="@+id/tvMusicFollowingAction"
+                        style="@style/Widget.Spotify.Chip.Raised"
+                        android:layout_width="wrap_content"
+                        android:layout_height="30dp"
+                        android:background="@drawable/bg_pill_inactive"
+                        android:gravity="center"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:text="Xem tất cả"
+                        android:textColor="@color/spotify_green"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvMusicFollowingArtists"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/spacing_16dp"
+                    android:paddingEnd="@dimen/spacing_16dp"
+                    tools:listitem="@layout/item_song_card_square" />
+
+                <LinearLayout
+                    android:id="@+id/layoutFollowingEmptyPrompt"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="@dimen/spacing_16dp"
+                    android:background="@drawable/bg_dropdown_panel_3d"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="10dp"
+                        android:layout_weight="1"
+                        android:text="Theo dõi nghệ sĩ để cập nhật bài hát mới tại đây"
+                        android:textAppearance="@style/TextAppearance.Spotify.Caption"
+                        android:textColor="@color/text_secondary" />
+
+                    <TextView
+                        android:id="@+id/btnDiscoverArtistsInMusic"
+                        style="@style/Widget.Spotify.Chip.Raised"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:background="@drawable/bg_pill_active"
+                        android:gravity="center"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:text="Khám phá"
+                        android:textColor="@color/on_primary_accent"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Mode A: Genre Sort & Genre Songs List -->
+            <LinearLayout
+                android:id="@+id/layoutGenreSongsContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:orientation="vertical">
+
+                <!-- Genre Song Sorting Selection Button -->
+                <LinearLayout
+                    android:id="@+id/btnGenreSortSelection"
+                    style="@style/Widget.Spotify.Chip.Raised"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="4dp"
+                    android:background="@drawable/bg_btn_3d_dropdown"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="12dp">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:contentDescription="Sort Icon"
+                        android:src="@drawable/ic_sort"
+                        app:tint="@color/spotify_green" />
+
+                    <TextView
+                        android:id="@+id/tvGenreSortSelected"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="Sắp xếp: Nhiều người nghe"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/ivGenreSortChevron"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginStart="6dp"
+                        android:contentDescription="Dropdown"
+                        android:src="@drawable/ic_chevron_down"
+                        app:tint="@color/icon_primary" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvGenreSongsHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="@dimen/spacing_16dp"
+                    android:textAppearance="@style/TextAppearance.Spotify.Title"
+                    tools:text="Bài hát thể loại" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvGenreSongs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_song_list_row" />
+            </LinearLayout>
+
+            <!-- Mode B: Dedicated Following Music Songs Feed -->
+            <LinearLayout
+                android:id="@+id/layoutFollowingSongsContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <!-- Following Songs Sorting Selection Button -->
+                <LinearLayout
+                    android:id="@+id/btnFollowingSortSelection"
+                    style="@style/Widget.Spotify.Chip.Raised"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="4dp"
+                    android:background="@drawable/bg_btn_3d_dropdown"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="12dp">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:contentDescription="Sort Icon"
+                        android:src="@drawable/ic_sort"
+                        app:tint="@color/spotify_green" />
+
+                    <TextView
+                        android:id="@+id/tvFollowingSortSelected"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="Sắp xếp: Mới nhất"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/ivFollowingSortChevron"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginStart="6dp"
+                        android:contentDescription="Dropdown"
+                        android:src="@drawable/ic_chevron_down"
+                        app:tint="@color/icon_primary" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvFollowingSongsHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="@dimen/spacing_16dp"
+                    android:text="Bài hát từ nghệ sĩ đang theo dõi"
+                    android:textAppearance="@style/TextAppearance.Spotify.Title" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvFollowingSongs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_song_list_row" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: Nghệ sĩ Container -->
+        <!-- ========================================== -->
+        <LinearLayout
+            android:id="@+id/layoutArtistsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/scrollChips">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_marginTop="14dp"
+                android:layout_marginEnd="@dimen/spacing_16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvAllArtistsHeader"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-bold"
+                        android:text="Khám phá nghệ sĩ"
+                        android:textAppearance="@style/TextAppearance.Spotify.Title"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Nghệ sĩ nổi bật và danh mục bài hát"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvArtistsCountBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_pill_inactive"
+                    android:paddingStart="10dp"
+                    android:paddingTop="5dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="5dp"
+                    android:text="Nghệ sĩ"
+                    android:textColor="@color/spotify_green"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Artist Filter Selection Button -->
+            <LinearLayout
+                android:id="@+id/btnArtistFilterSelection"
+                style="@style/Widget.Spotify.Chip.Raised"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/bg_btn_3d_dropdown"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="12dp">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="Filter Icon"
+                    android:src="@drawable/ic_tune"
+                    app:tint="@color/spotify_green" />
+
+                <TextView
+                    android:id="@+id/tvArtistFilterSelected"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Bộ lọc: Tất cả"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12.5sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/ivArtistFilterChevron"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginStart="6dp"
+                    android:contentDescription="Dropdown"
+                    android:src="@drawable/ic_chevron_down"
+                    app:tint="@color/icon_primary" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvArtistsEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="36dp"
+                android:gravity="center"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:text="Chưa có nghệ sĩ phù hợp trong mục này."
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvAllArtists"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:clipToPadding="false"
+                android:nestedScrollingEnabled="false"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="16dp"
+                tools:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                tools:listitem="@layout/item_artist_grid"
+                tools:spanCount="2" />
+        </LinearLayout>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: Playlist Container -->
+        <!-- ========================================== -->
+        <LinearLayout
+            android:id="@+id/layoutPlaylistsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/scrollChips">
+
+            <TextView
+                android:id="@+id/tvAllPlaylistsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="@dimen/spacing_16dp"
+                android:text="Danh sách phát"
+                android:textAppearance="@style/TextAppearance.Spotify.Title" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvAllPlaylists"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="8dp"
+                android:nestedScrollingEnabled="false"
+                tools:spanCount="2"
+                tools:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                tools:listitem="@layout/item_song_card_square" />
+        </LinearLayout>
+
+        <!-- ========================================== -->
+        <!-- TAB 5: Album Container -->
+        <!-- ========================================== -->
+        <LinearLayout
+            android:id="@+id/layoutAlbumsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/scrollChips">
+
+            <TextView
+                android:id="@+id/tvAllAlbumsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="@dimen/spacing_16dp"
+                android:text="Tất cả Album"
+                android:textAppearance="@style/TextAppearance.Spotify.Title" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvAllAlbums"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="8dp"
+                android:nestedScrollingEnabled="false"
+                tools:spanCount="2"
+                tools:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                tools:listitem="@layout/item_album_card" />
+        </LinearLayout>
+
+        <!-- Main Scrollable Content Container (9 Curated Sections) -->
         <LinearLayout
             android:id="@+id/layoutHomeContent"
             android:layout_width="match_parent"
@@ -238,7 +914,7 @@
             android:orientation="vertical"
             app:layout_constraintTop_toBottomOf="@id/scrollChips">
 
-            <!-- Section: Recently Played Header & Grid (2 columns) -->
+            <!-- 1. Nội dung nghe gần đây -->
             <TextView
                 android:id="@+id/tvRecentlyPlayedHeader"
                 android:layout_width="match_parent"
@@ -246,9 +922,9 @@
                 android:layout_marginStart="@dimen/spacing_16dp"
                 android:layout_marginTop="@dimen/spacing_20dp"
                 android:layout_marginEnd="@dimen/spacing_16dp"
-                android:text="Nghe gần đây"
+                android:text="Nội dung nghe gần đây"
                 android:textAppearance="@style/TextAppearance.Spotify.Title"
-                tools:text="Nghe gần đây" />
+                tools:text="Nội dung nghe gần đây" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvRecentlyPlayed"
@@ -257,26 +933,28 @@
                 android:layout_marginStart="@dimen/spacing_12dp"
                 android:layout_marginTop="@dimen/spacing_12dp"
                 android:layout_marginEnd="@dimen/spacing_12dp"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:nestedScrollingEnabled="false"
                 tools:itemCount="6"
                 tools:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                 tools:listitem="@layout/item_recent_card"
                 tools:spanCount="2" />
 
-            <!-- Section 1: Made For You -->
+            <!-- 2. Album có bài hát bạn thích -->
             <TextView
-                android:id="@+id/tvMadeForYouHeader"
+                android:id="@+id/tvLikedSongAlbumsHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/spacing_16dp"
                 android:layout_marginTop="@dimen/spacing_24dp"
                 android:layout_marginEnd="@dimen/spacing_16dp"
-                android:text="@string/section_made_for_you"
+                android:text="Album có bài hát bạn thích"
                 android:textAppearance="@style/TextAppearance.Spotify.Title"
-                tools:text="Dành riêng cho bạn" />
+                tools:text="Album có bài hát bạn thích" />
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvMadeForYou"
+                android:id="@+id/rvLikedSongAlbums"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/spacing_12dp"
@@ -284,36 +962,22 @@
                 android:orientation="horizontal"
                 android:paddingStart="@dimen/spacing_16dp"
                 android:paddingEnd="@dimen/spacing_16dp"
-                tools:listitem="@layout/item_song_card_square" />
+                tools:listitem="@layout/item_album_card" />
 
-            <!-- Section 2: AI Recommended Mixes -->
-            <LinearLayout
-                android:id="@+id/layoutAiHeader"
+            <!-- 3. Danh sách phát gần đây -->
+            <TextView
+                android:id="@+id/tvRecentPlaylistsHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/spacing_16dp"
                 android:layout_marginTop="@dimen/spacing_24dp"
                 android:layout_marginEnd="@dimen/spacing_16dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginEnd="@dimen/spacing_8dp"
-                    android:src="@drawable/ic_sparkle_ai"
-                    app:tint="@color/spotify_green" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/section_recommended"
-                    android:textAppearance="@style/TextAppearance.Spotify.Title"
-                    tools:text="Gợi ý thông minh với Gemini AI" />
-            </LinearLayout>
+                android:text="Danh sách phát gần đây"
+                android:textAppearance="@style/TextAppearance.Spotify.Title"
+                tools:text="Danh sách phát gần đây" />
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvAiRecommended"
+                android:id="@+id/rvRecentPlaylists"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/spacing_12dp"
@@ -323,7 +987,7 @@
                 android:paddingEnd="@dimen/spacing_16dp"
                 tools:listitem="@layout/item_song_card_square" />
 
-            <!-- Section 3: Popular Albums -->
+            <!-- 4. Album và đĩa đơn nổi tiếng -->
             <TextView
                 android:id="@+id/tvPopularAlbumsHeader"
                 android:layout_width="match_parent"
@@ -331,9 +995,9 @@
                 android:layout_marginStart="@dimen/spacing_16dp"
                 android:layout_marginTop="@dimen/spacing_24dp"
                 android:layout_marginEnd="@dimen/spacing_16dp"
-                android:text="Album nổi tiếng"
+                android:text="Album và đĩa đơn nổi tiếng"
                 android:textAppearance="@style/TextAppearance.Spotify.Title"
-                tools:text="Album nổi tiếng" />
+                tools:text="Album và đĩa đơn nổi tiếng" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvPopularAlbums"
@@ -346,20 +1010,20 @@
                 android:paddingEnd="@dimen/spacing_16dp"
                 tools:listitem="@layout/item_album_card" />
 
-            <!-- Section 4: Featured Playlists -->
+            <!-- 5. Tuyển tập hàng đầu của bạn -->
             <TextView
-                android:id="@+id/tvFeaturedPlaylistsHeader"
+                android:id="@+id/tvTopMixesHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/spacing_16dp"
                 android:layout_marginTop="@dimen/spacing_24dp"
                 android:layout_marginEnd="@dimen/spacing_16dp"
-                android:text="Danh sách phát thịnh hành"
+                android:text="Tuyển tập hàng đầu của bạn"
                 android:textAppearance="@style/TextAppearance.Spotify.Title"
-                tools:text="Danh sách phát thịnh hành" />
+                tools:text="Tuyển tập hàng đầu của bạn" />
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvFeaturedPlaylists"
+                android:id="@+id/rvTopMixes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/spacing_12dp"
@@ -369,20 +1033,103 @@
                 android:paddingEnd="@dimen/spacing_16dp"
                 tools:listitem="@layout/item_song_card_square" />
 
-            <!-- Section 5: Popular Artists -->
+            <!-- 6. Radio phổ biến -->
             <TextView
-                android:id="@+id/tvPopularArtistsHeader"
+                android:id="@+id/tvPopularRadiosHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/spacing_16dp"
                 android:layout_marginTop="@dimen/spacing_24dp"
                 android:layout_marginEnd="@dimen/spacing_16dp"
-                android:text="@string/section_popular_artists"
+                android:text="Radio phổ biến"
                 android:textAppearance="@style/TextAppearance.Spotify.Title"
-                tools:text="Nghệ sĩ phổ biến" />
+                tools:text="Radio phổ biến" />
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvPopularArtists"
+                android:id="@+id/rvPopularRadios"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_12dp"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                tools:listitem="@layout/item_song_card_square" />
+
+            <!-- 7. Đề xuất cho hôm nay -->
+            <LinearLayout
+                android:id="@+id/layoutRecommendedTodayHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_marginTop="@dimen/spacing_24dp"
+                android:layout_marginEnd="@dimen/spacing_16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="@dimen/spacing_8dp"
+                    android:src="@drawable/ic_assistant_wave"
+                    app:tint="@color/spotify_green" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Đề xuất cho hôm nay"
+                    android:textAppearance="@style/TextAppearance.Spotify.Title"
+                    tools:text="Đề xuất cho hôm nay" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvRecommendedToday"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_12dp"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                tools:listitem="@layout/item_song_card_square" />
+
+            <!-- 8. Nghe lại -->
+            <TextView
+                android:id="@+id/tvListenAgainHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_marginTop="@dimen/spacing_24dp"
+                android:layout_marginEnd="@dimen/spacing_16dp"
+                android:text="Nghe lại"
+                android:textAppearance="@style/TextAppearance.Spotify.Title"
+                tools:text="Nghe lại" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvListenAgain"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_12dp"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/spacing_16dp"
+                android:paddingEnd="@dimen/spacing_16dp"
+                tools:listitem="@layout/item_song_card_square" />
+
+            <!-- 9. Tuyển tập nhạc hay nhất của các nghệ sĩ -->
+            <TextView
+                android:id="@+id/tvBestOfArtistsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_marginTop="@dimen/spacing_24dp"
+                android:layout_marginEnd="@dimen/spacing_16dp"
+                android:text="Tuyển tập nhạc hay nhất của các nghệ sĩ"
+                android:textAppearance="@style/TextAppearance.Spotify.Title"
+                tools:text="Tuyển tập nhạc hay nhất của các nghệ sĩ" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvBestOfArtists"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/spacing_12dp"

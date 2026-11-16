@@ -31,7 +31,7 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:scaleType="centerCrop"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.Pill"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.Circle"
             tools:srcCompat="@android:drawable/ic_menu_gallery" />
 
         <LinearLayout
@@ -98,7 +98,7 @@
         android:backgroundTint="@color/spotify_green"
         android:text="Theo dõi nghệ sĩ"
         android:textAllCaps="false"
-        android:textColor="@color/spotify_black"
+        android:textColor="@color/on_primary_accent"
         android:textSize="15sp"
         android:textStyle="bold"
         app:cornerRadius="24dp" />

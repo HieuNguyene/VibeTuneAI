@@ -35,7 +35,7 @@
             android:padding="12dp"
             android:src="@drawable/ic_person"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.Pill"
-            app:tint="@color/white" />
+            app:tint="@color/icon_primary" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -57,8 +57,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="minhhieu@spotify.com"
-                android:textAppearance="@style/TextAppearance.Spotify.Caption" />
+                android:text=""
+                android:textAppearance="@style/TextAppearance.Spotify.Caption"
+                tools:text="user@vibetune.app" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -69,8 +70,8 @@
                 android:paddingTop="2dp"
                 android:paddingEnd="8dp"
                 android:paddingBottom="2dp"
-                android:text="PREMIUM"
-                android:textColor="@color/black"
+                android:text="VIBETUNE"
+                android:textColor="@color/on_primary_accent"
                 android:textSize="10sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -82,6 +83,90 @@
         android:layout_marginTop="@dimen/spacing_20dp"
         android:layout_marginBottom="@dimen/spacing_12dp"
         android:background="@color/divider_color" />
+
+    <!-- Quick Theme Mode Selector (Sáng / Tối / Theo hệ thống) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/spacing_12dp"
+        android:background="@drawable/bg_card_rounded"
+        android:backgroundTint="@color/spotify_elevated"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Giao diện hiển thị"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvThemeModeLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tối"
+                android:textColor="@color/spotify_green"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/btnThemeLight"
+                android:layout_width="0dp"
+                android:layout_height="34dp"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_pill_inactive"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="Sáng"
+                android:textColor="@color/text_primary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/btnThemeDark"
+                android:layout_width="0dp"
+                android:layout_height="34dp"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_pill_inactive"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="Tối"
+                android:textColor="@color/text_primary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/btnThemeSystem"
+                android:layout_width="0dp"
+                android:layout_height="34dp"
+                android:layout_weight="1.15"
+                android:background="@drawable/bg_pill_inactive"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="Hệ thống"
+                android:textColor="@color/text_primary"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
 
     <!-- Menu Item: Account Settings -->
     <LinearLayout
@@ -136,6 +221,34 @@
             android:layout_marginStart="@dimen/spacing_16dp"
             android:layout_weight="1"
             android:text="@string/audio_quality"
+            android:textAppearance="@style/TextAppearance.Spotify.Body" />
+    </LinearLayout>
+
+    <!-- Menu Item: Listening History -->
+    <LinearLayout
+        android:id="@+id/btnListeningHistory"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/spacing_8dp"
+        android:paddingEnd="@dimen/spacing_8dp">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_history"
+            app:tint="@color/text_secondary" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_16dp"
+            android:layout_weight="1"
+            android:text="Lịch sử nghe nhạc"
             android:textAppearance="@style/TextAppearance.Spotify.Body" />
     </LinearLayout>
 

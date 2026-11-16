@@ -36,7 +36,15 @@ public class SongOptionsBottomSheetDialog {
         void onFavoriteChanged(boolean isLiked);
     }
 
+    public interface OnTrackRemovedListener {
+        void onTrackRemoved();
+    }
+
     public static void show(Context context, Song song, OnFavoriteChangedListener listener) {
+        show(context, song, null, null, listener);
+    }
+
+    public static void show(Context context, Song song, String currentPlaylistId, OnTrackRemovedListener removeListener, OnFavoriteChangedListener listener) {
         if (context == null || song == null) return;
 
         BottomSheetDialog dialog = new BottomSheetDialog(context, R.style.Theme_Spotify_BottomSheet);
@@ -47,7 +55,11 @@ public class SongOptionsBottomSheetDialog {
 
         // Bind song header
         binding.tvSongTitle.setText(song.getTitle());
-        binding.tvSongArtist.setText(song.getArtistName());
+        String artistSubtitle = song.getArtistName();
+        if (song.getComposer() != null && !song.getComposer().isEmpty() && !song.getComposer().equalsIgnoreCase(song.getArtistName())) {
+            artistSubtitle += " • Sáng tác: " + song.getComposer();
+        }
+        binding.tvSongArtist.setText(artistSubtitle);
         Glide.with(context)
                 .load(ApiClient.resolveMediaUrl(song.getCoverImageUrl()))
                 .placeholder(R.drawable.bg_card_rounded)
@@ -67,7 +79,7 @@ public class SongOptionsBottomSheetDialog {
             if (song.getId().equals(MusicPlayerManager.getInstance().getCurrentSongId())) {
                 MusicPlayerManager.getInstance().setCurrentSongLiked(nextLiked);
             }
-            Toast.makeText(context, nextLiked ? "Đã thêm vào bài hát đã thích ❤️" : "Đã xóa khỏi bài hát đã thích", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, nextLiked ? "Đã thêm vào bài hát đã thích" : "Đã xóa khỏi bài hát đã thích", Toast.LENGTH_SHORT).show();
 
             ApiClient.getApiService().toggleFavorite(song.getId()).enqueue(new Callback<ApiResponse<ToggleFavoriteData>>() {
                 @Override
@@ -124,9 +136,35 @@ public class SongOptionsBottomSheetDialog {
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             shareIntent.setType("text/plain");
             shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Nghe nhạc trên Vibe Music");
-            shareIntent.putExtra(Intent.EXTRA_TEXT, "Đang nghe bài hát \"" + song.getTitle() + "\" của " + song.getArtistName() + " trên Vibe Music! 🎵");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, "Đang nghe bài hát \"" + song.getTitle() + "\" của " + song.getArtistName() + ".");
             context.startActivity(Intent.createChooser(shareIntent, "Chia sẻ bài hát qua"));
         });
+
+        // Setup Remove from playlist (only if in user's own playlist)
+        if (currentPlaylistId != null && !currentPlaylistId.isEmpty() && removeListener != null) {
+            binding.itemSongRemoveFromPlaylist.setVisibility(View.VISIBLE);
+            binding.itemSongRemoveFromPlaylist.setOnClickListener(v -> {
+                dialog.dismiss();
+                ApiClient.getApiService().removeTrackFromPlaylist(currentPlaylistId, song.getId()).enqueue(new Callback<ApiResponse<Object>>() {
+                    @Override
+                    public void onResponse(@NonNull Call<ApiResponse<Object>> call, @NonNull Response<ApiResponse<Object>> response) {
+                        if (response.isSuccessful()) {
+                            Toast.makeText(context, "Đã xóa bài hát khỏi danh sách phát", Toast.LENGTH_SHORT).show();
+                            removeListener.onTrackRemoved();
+                        } else {
+                            Toast.makeText(context, "Không thể gỡ bài hát", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<ApiResponse<Object>> call, @NonNull Throwable t) {
+                        Toast.makeText(context, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
+        } else {
+            binding.itemSongRemoveFromPlaylist.setVisibility(View.GONE);
+        }
 
         dialog.show();
     }
@@ -148,8 +186,8 @@ public class SongOptionsBottomSheetDialog {
         playlistDialog.setContentView(playlistBinding.getRoot());
 
         playlistBinding.btnCreateNewPlaylist.setOnClickListener(v -> {
-            Toast.makeText(context, "Vào mục Thư viện để tạo Danh sách phát mới", Toast.LENGTH_SHORT).show();
             playlistDialog.dismiss();
+            openCreatePlaylistAndAddSong(context, song.getId());
         });
 
         playlistBinding.pbLoadingPlaylists.setVisibility(View.VISIBLE);
@@ -182,20 +220,56 @@ public class SongOptionsBottomSheetDialog {
         playlistDialog.show();
     }
 
-    private static void addSongToPlaylist(Context context, String playlistId, String playlistTitle, String songId) {
-        if (playlistId == null || songId == null) return;
+    public static void openCreatePlaylistAndAddSong(Context context, String songId) {
+        androidx.fragment.app.FragmentActivity activity = findFragmentActivity(context);
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+            Toast.makeText(context, "Không thể mở hộp thoại tạo Danh sách phát", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        com.example.spotifyclone.presentation.playlist.CreatePlaylistBottomSheetDialog createDialog =
+                com.example.spotifyclone.presentation.playlist.CreatePlaylistBottomSheetDialog.newInstance();
+        createDialog.setOnPlaylistCreatedListener(playlist -> {
+            if (playlist != null && songId != null && !songId.isEmpty()) {
+                addSongToPlaylist(activity, playlist.getId(), playlist.getTitle(), songId);
+            }
+        });
+        createDialog.show(activity.getSupportFragmentManager(), "CreatePlaylistAndAddSong");
+    }
+
+    @androidx.annotation.Nullable
+    private static androidx.fragment.app.FragmentActivity findFragmentActivity(Context context) {
+        Context cur = context;
+        while (cur instanceof android.content.ContextWrapper) {
+            if (cur instanceof androidx.fragment.app.FragmentActivity) {
+                return (androidx.fragment.app.FragmentActivity) cur;
+            }
+            cur = ((android.content.ContextWrapper) cur).getBaseContext();
+        }
+        return null;
+    }
+
+    public static void addSongToPlaylist(Context context, String playlistId, String playlistTitle, String songId) {
+        if (playlistId == null || songId == null || songId.isEmpty()) return;
         Map<String, String> body = new HashMap<>();
         body.put("songId", songId);
+        Context appContext = context.getApplicationContext();
 
         ApiClient.getApiService().addTrackToPlaylist(playlistId, body).enqueue(new Callback<ApiResponse<Object>>() {
             @Override
             public void onResponse(@NonNull Call<ApiResponse<Object>> call, @NonNull Response<ApiResponse<Object>> response) {
-                Toast.makeText(context, "Đã thêm bài hát vào " + playlistTitle, Toast.LENGTH_SHORT).show();
+                if (response.isSuccessful()) {
+                    Toast.makeText(appContext, "Đã thêm bài hát vào " + playlistTitle, Toast.LENGTH_SHORT).show();
+                } else {
+                    String errMsg = response.code() == 409
+                            ? "Bài hát đã có trong " + playlistTitle
+                            : "Không thể thêm vào danh sách phát (HTTP " + response.code() + ")";
+                    Toast.makeText(appContext, errMsg, Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
             public void onFailure(@NonNull Call<ApiResponse<Object>> call, @NonNull Throwable t) {
-                Toast.makeText(context, "Lỗi thêm vào danh sách phát: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(appContext, "Lỗi thêm vào danh sách phát: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

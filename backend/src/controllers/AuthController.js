@@ -14,7 +14,8 @@ class AuthController {
 
   static async login(req, res, next) {
     try {
-      const { identifier, password } = req.body;
+      const identifier = req.body.identifier || req.body.username || req.body.email;
+      const { password } = req.body;
       const result = await AuthService.login({ identifier, password });
       return ApiResponse.success(res, result, 'Login successful');
     } catch (error) {
@@ -82,8 +83,8 @@ class AuthController {
 
   static async loginWithGoogle(req, res, next) {
     try {
-      const { googleId, email, displayName, avatarUrl } = req.body;
-      const result = await AuthService.loginWithGoogle({ googleId, email, displayName, avatarUrl });
+      const { idToken } = req.body;
+      const result = await AuthService.loginWithGoogle({ idToken });
       return ApiResponse.success(res, result, 'Đăng nhập Google thành công');
     } catch (error) {
       next(error);

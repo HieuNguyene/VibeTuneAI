@@ -1,0 +1,44 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.SpotifyClone" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/spotify_green</item>
+        <item name="colorPrimaryInverse">@color/spotify_black</item>
+        <item name="colorSecondary">@color/spotify_green_light</item>
+        <item name="colorOnPrimary">@color/spotify_black</item>
+        <item name="colorSurface">@color/spotify_surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+
+        <item name="android:windowBackground">@color/spotify_black</item>
+        <item name="android:colorBackground">@color/spotify_black</item>
+
+        <item name="android:statusBarColor">@color/spotify_black</item>
+        <item name="android:navigationBarColor">@color/spotify_black</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+
+        <item name="colorControlHighlight">@color/spotify_hover</item>
+        <item name="bottomNavigationStyle">@style/Widget.Spotify.BottomNavigationView</item>
+    </style>
+
+    <style name="Widget.Spotify.Button.Primary" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/spotify_green</item>
+        <item name="android:textColor">@color/on_primary_accent</item>
+        <item name="iconTint">@color/on_primary_accent</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cornerRadius">@dimen/corner_radius_pill</item>
+        <item name="strokeColor">#33050506</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="rippleColor">#26050506</item>
+        <item name="android:elevation">2dp</item>
+        <item name="android:paddingStart">@dimen/spacing_24dp</item>
+        <item name="android:paddingEnd">@dimen/spacing_24dp</item>
+        <item name="android:paddingTop">@dimen/spacing_12dp</item>
+        <item name="android:paddingBottom">@dimen/spacing_12dp</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="Theme.Spotify.BottomSheet" parent="Theme.Material3.DayNight.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.Spotify.BottomSheet</item>
+        <item name="android:navigationBarColor">@color/sheet_surface</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+    </style>
+</resources>

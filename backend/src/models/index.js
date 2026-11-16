@@ -8,7 +8,12 @@ const Song = require('./Song');
 const Playlist = require('./Playlist');
 const PlaylistTrack = require('./PlaylistTrack');
 const ListeningHistory = require('./ListeningHistory');
+const ListeningEvent = require('./ListeningEvent');
+const PlaySession = require('./PlaySession');
+const UserInteraction = require('./UserInteraction');
 const AiPromptLog = require('./AiPromptLog');
+const Notification = require('./Notification');
+const OtpVerification = require('./OtpVerification');
 
 module.exports = {
   User,
@@ -21,5 +26,10 @@ module.exports = {
   Playlist,
   PlaylistTrack,
   ListeningHistory,
-  AiPromptLog
+  ListeningEvent,
+  PlaySession,
+  UserInteraction,
+  AiPromptLog,
+  Notification,
+  OtpVerification
 };

@@ -2,6 +2,8 @@ package com.example.spotifyclone.data.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.Map;
+
 public class User {
     @SerializedName("_id")
     private String id;
@@ -24,6 +26,9 @@ public class User {
     @SerializedName("phoneNumber")
     private String phoneNumber;
 
+    @SerializedName("preferences")
+    private Map<String, Object> preferences;
+
     public User() {}
 
     public User(String id, String username, String email, String displayName, String avatarUrl, String role) {
@@ -43,4 +48,12 @@ public class User {
     public String getRole() { return role; }
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public Map<String, Object> getPreferences() { return preferences; }
+    public String getStreamingQuality() {
+        if (preferences != null) {
+            Object val = preferences.get("streamingQuality");
+            if (val instanceof String) return (String) val;
+        }
+        return null;
+    }
 }

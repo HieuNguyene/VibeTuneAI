@@ -10,7 +10,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.navigation.ui.NavigationUI;
 
 import com.bumptech.glide.Glide;
 import com.example.spotifyclone.R;
@@ -21,6 +20,7 @@ import com.example.spotifyclone.data.remote.ApiClient;
 import com.example.spotifyclone.databinding.ActivityMainBinding;
 import com.example.spotifyclone.player.MusicPlayerManager;
 import com.example.spotifyclone.presentation.player.PlayerActivity;
+import com.example.spotifyclone.ui.liquid.LiquidDropletHelper;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity implements MusicPlayerManage
 
     private ActivityMainBinding binding;
     private boolean isFavorite = false;
+    private int currentDestinationId = R.id.navigation_home;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -46,14 +47,13 @@ public class MainActivity extends AppCompatActivity implements MusicPlayerManage
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        com.example.spotifyclone.util.ThemeManager.applySystemBarsAppearance(this);
 
-        // Bù trừ an toàn thanh trạng thái (Status Bar), thanh điều hướng (Navigation Bar) và Bàn phím ảo (IME)
+        // Bù trừ an toàn thanh trạng thái (Status Bar) và thanh điều hướng (Navigation Bar)
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.mainRootLayout, (v, insets) -> {
             androidx.core.graphics.Insets bars = insets.getInsets(
                     androidx.core.view.WindowInsetsCompat.Type.systemBars() | androidx.core.view.WindowInsetsCompat.Type.displayCutout()
             );
-            androidx.core.graphics.Insets imeInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime());
-            boolean isKeyboardOpen = imeInsets.bottom > bars.bottom;
 
             android.view.ViewGroup.LayoutParams lp = binding.statusBarSpacer.getLayoutParams();
             if (lp.height != bars.top) {
@@ -61,13 +61,14 @@ public class MainActivity extends AppCompatActivity implements MusicPlayerManage
                 binding.statusBarSpacer.setLayoutParams(lp);
             }
 
-            // Khi bàn phím ảo hiển thị (chiều cao IME vượt qua thanh điều hướng), tạm ẩn bottom nav và bù padding bàn phím
-            binding.bottomNavigationView.setVisibility(isKeyboardOpen ? View.GONE : View.VISIBLE);
-            int bottomPadding = isKeyboardOpen ? imeInsets.bottom : bars.bottom;
-            binding.bottomNavigationContainer.setPadding(0, 0, 0, bottomPadding);
+            float d = getResources().getDisplayMetrics().density;
+            int padH = Math.round(12 * d);
+            int padTop = Math.round(4 * d);
+            binding.liquidNavBar.setVisibility(View.VISIBLE);
+            binding.bottomNavigationContainer.setPadding(padH, padTop, padH, bars.bottom);
+            binding.bottomNavigationContainer.post(this::syncAiChatBottomInset);
             return insets;
         });
-        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNavigationView, (v, insets) -> insets);
         if (binding.mainRootLayout.isAttachedToWindow()) {
             androidx.core.view.ViewCompat.requestApplyInsets(binding.mainRootLayout);
         }
@@ -75,8 +76,45 @@ public class MainActivity extends AppCompatActivity implements MusicPlayerManage
         MusicPlayerManager.getInstance().addListener(this);
 
         setupNavigation();
+        handleNavTarget(getIntent());
         setupMiniPlayer();
         checkAndRequestNotificationPermission();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleNavTarget(intent);
+    }
+
+    private void handleNavTarget(Intent intent) {
+        if (intent == null) return;
+        int targetId = intent.getIntExtra("NAV_TARGET_ID", 0);
+        if (targetId != 0) {
+            NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.nav_host_fragment);
+            if (navHostFragment != null) {
+                NavController navController = navHostFragment.getNavController();
+                if (navController.getCurrentDestination() == null || navController.getCurrentDestination().getId() != targetId) {
+                    try {
+                        navController.navigate(targetId);
+                    } catch (Exception e) {
+                        android.util.Log.e("MainActivity", "Failed to navigate to targetId: " + targetId, e);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        com.example.spotifyclone.util.ThemeManager.applySystemBarsAppearance(this);
+        if (binding != null) {
+            binding.liquidNavBar.markBackdropDirty();
+            binding.miniPlayerGlassFrame.invalidate();
+        }
     }
 
     private final androidx.activity.result.ActivityResultLauncher<String> notificationPermissionLauncher =
@@ -94,20 +132,57 @@ public class MainActivity extends AppCompatActivity implements MusicPlayerManage
     }
 
     private void setupNavigation() {
+        binding.liquidNavBar.setBackdropSource(binding.navHostFragment);
+        binding.miniPlayerGlassFrame.setBackdropSource(binding.navHostFragment);
+
+        binding.bottomNavigationContainer.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) ->
+                syncAiChatBottomInset()
+        );
+
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment);
         if (navHostFragment != null) {
             NavController navController = navHostFragment.getNavController();
-            NavigationUI.setupWithNavController(binding.bottomNavigationView, navController);
+            binding.liquidNavBar.bindNavController(navController);
+            navController.addOnDestinationChangedListener((ctrl, destination, args) -> {
+                currentDestinationId = destination.getId();
+                syncAiChatBottomInset();
+                binding.navHostFragment.post(() -> {
+                    binding.liquidNavBar.markBackdropDirty();
+                    binding.miniPlayerGlassFrame.markBackdropDirty();
+                });
+            });
         }
+    }
+
+    private void syncAiChatBottomInset() {
+        if (binding == null) return;
+        int bottomPad = (currentDestinationId == R.id.navigation_ai)
+                ? binding.bottomNavigationContainer.getHeight()
+                : 0;
+        if (binding.navHostFragment.getPaddingBottom() != bottomPad) {
+            binding.navHostFragment.setPadding(0, 0, 0, bottomPad);
+        }
+    }
+
+    private void setMiniPlayerVisible(boolean isVisible) {
+        if (binding == null) return;
+        int vis = isVisible ? View.VISIBLE : View.GONE;
+        binding.miniPlayerGlassFrame.setVisibility(vis);
+        binding.includedMiniPlayer.miniPlayerRoot.setVisibility(vis);
+        binding.bottomNavigationContainer.post(this::syncAiChatBottomInset);
     }
 
     @android.annotation.SuppressLint("ClickableViewAccessibility")
     private void setupMiniPlayer() {
+        LiquidDropletHelper.attachDropletSpring(
+                binding.includedMiniPlayer.btnMiniFavorite,
+                binding.includedMiniPlayer.btnMiniPlayPause
+        );
         if (MusicPlayerManager.getInstance().getCurrentTitle().isEmpty()) {
-            binding.includedMiniPlayer.miniPlayerRoot.setVisibility(View.GONE);
+            setMiniPlayerVisible(false);
         } else {
-            binding.includedMiniPlayer.miniPlayerRoot.setVisibility(View.VISIBLE);
+            setMiniPlayerVisible(true);
             binding.includedMiniPlayer.tvMiniSongTitle.setText(MusicPlayerManager.getInstance().getCurrentTitle());
             binding.includedMiniPlayer.tvMiniArtistName.setText(MusicPlayerManager.getInstance().getCurrentArtist());
             Glide.with(this)
@@ -220,7 +295,7 @@ public class MainActivity extends AppCompatActivity implements MusicPlayerManage
     @Override
     public void onTrackChanged(String title, String artist, String coverUrl) {
         runOnUiThread(() -> {
-            binding.includedMiniPlayer.miniPlayerRoot.setVisibility(View.VISIBLE);
+            setMiniPlayerVisible(true);
             binding.includedMiniPlayer.tvMiniSongTitle.setText(title);
             binding.includedMiniPlayer.tvMiniArtistName.setText(artist);
 
@@ -265,7 +340,7 @@ public class MainActivity extends AppCompatActivity implements MusicPlayerManage
     }
 
     public void updateMiniPlayerVisibility(boolean isVisible) {
-        binding.includedMiniPlayer.miniPlayerRoot.setVisibility(isVisible ? View.VISIBLE : View.GONE);
+        setMiniPlayerVisible(isVisible);
     }
 
     public void updateMiniPlayerTrack(Song song) {

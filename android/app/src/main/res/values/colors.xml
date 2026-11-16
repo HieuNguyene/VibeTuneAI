@@ -1,36 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Spotify Core Theme Colors -->
-    <color name="spotify_black">#121212</color>
-    <color name="spotify_black_translucent">#CC121212</color>
-    <color name="spotify_surface">#181818</color>
-    <color name="spotify_elevated">#242424</color>
-    <color name="spotify_hover">#282828</color>
-    <color name="spotify_stroke">#333333</color>
+    <!-- Core Theme Colors (Light Mode Default - Airy Sky Slate) -->
+    <color name="spotify_black">#F2F7FC</color>
+    <color name="spotify_black_translucent">#E6F2F7FC</color>
+    <color name="spotify_surface">#FFFFFF</color>
+    <color name="spotify_elevated">#E6F0FA</color>
+    <color name="spotify_hover">#D6E7F7</color>
+    <color name="spotify_stroke">#C0D6EC</color>
 
-    <!-- Spotify Accent Colors -->
-    <color name="spotify_green">#1DB954</color>
-    <color name="spotify_green_light">#1ED760</color>
-    <color name="spotify_green_translucent">#261DB954</color>
+    <!-- Sky Blue Accent Colors (High Daylight Contrast) -->
+    <color name="spotify_green">#0284C7</color>
+    <color name="spotify_green_light">#0EA5E9</color>
+    <color name="spotify_green_translucent">#1F0EA5E9</color>
+    <color name="on_primary_accent">#FFFFFF</color>
 
     <!-- Typography & Iconography -->
-    <color name="text_primary">#FFFFFF</color>
-    <color name="text_secondary">#B3B3B3</color>
-    <color name="text_disabled">#535353</color>
-    <color name="icon_inactive">#535353</color>
-    <color name="divider_color">#282828</color>
+    <color name="text_primary">#0F172A</color>
+    <color name="text_secondary">#475569</color>
+    <color name="text_disabled">#64748B</color>
+    <color name="icon_primary">#0F172A</color>
+    <color name="icon_inactive">#52667A</color>
+    <color name="divider_color">#D7E4F2</color>
+
+    <!-- Semantic Surface & Container Tokens -->
+    <color name="input_box_bg">#EAF2FA</color>
+    <color name="chat_ai_avatar_bg">#DCF0FE</color>
+    <color name="chat_song_card_bg">#FFFFFF</color>
+    <color name="sheet_surface">#FFFFFF</color>
+    <color name="badge_translucent_bg">#D40B1524</color>
 
     <!-- Player & Seekbar Colors -->
-    <color name="seekbar_track_background">#4DFFFFFF</color>
-    <color name="seekbar_track_progress">#1DB954</color>
-    <color name="seekbar_thumb">#FFFFFF</color>
+    <color name="seekbar_track_background">#2E0F172A</color>
+    <color name="seekbar_track_progress">#0EA5E9</color>
+    <color name="seekbar_thumb">#0284C7</color>
 
     <!-- MiniPlayer Background with slight alpha -->
-    <color name="mini_player_bg">#242424</color>
+    <color name="mini_player_bg">#F2FFFFFF</color>
 
     <!-- Skeleton Shimmer Placeholder Colors -->
-    <color name="shimmer_base">#282828</color>
-    <color name="shimmer_highlight">#3A3A3A</color>
+    <color name="shimmer_base">#DFEAF4</color>
+    <color name="shimmer_highlight">#F2F7FC</color>
 
     <!-- Genre Discovery Category Colors -->
     <color name="genre_pop">#8D67AB</color>
@@ -42,14 +51,22 @@
     <color name="genre_rnb">#DC148C</color>
     <color name="genre_jazz">#7D4B32</color>
 
-    <!-- AI Feature Gradient Colors -->
-    <color name="ai_gradient_start">#8E2DE2</color>
-    <color name="ai_gradient_end">#4A00E0</color>
-    <color name="ai_chip_bg">#208E2DE2</color>
+    <!-- Assistant Accent Colors (Cohesive Sky Blue Palette) -->
+    <color name="ai_gradient_start">#38BDF8</color>
+    <color name="ai_gradient_end">#0284C7</color>
+    <color name="ai_chip_bg">#1F0EA5E9</color>
+
+    <!-- Segmented Selection Button Tokens -->
+    <color name="selection_group_bg">#E6F0FA</color>
+    <color name="selection_group_stroke">#C0D6EC</color>
+    <color name="selection_active_bg">#0284C7</color>
+    <color name="selection_active_text">#FFFFFF</color>
+    <color name="selection_inactive_text">#475569</color>
 
     <!-- System / Utility Colors -->
     <color name="transparent">#00000000</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
-    <color name="error_red">#E91429</color>
+    <color name="error_red">#E11D48</color>
+    <color name="spotify_error">#E11D48</color>
 </resources>

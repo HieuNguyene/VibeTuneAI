@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 title MongoDB Local - Docker Runner
 echo ====================================================================
 echo   KHOI DONG MONGODB LOCAL (PORT 27017)

@@ -15,14 +15,14 @@
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:background="@drawable/bg_circle_icon"
-        android:backgroundTint="#1F2937"
+        android:backgroundTint="@color/chat_ai_avatar_bg"
         android:gravity="center">
 
         <ImageView
             android:layout_width="18dp"
             android:layout_height="18dp"
             android:contentDescription="AI DJ"
-            android:src="@drawable/ic_sparkle_ai"
+            android:src="@drawable/ic_assistant_wave"
             app:tint="@color/spotify_green" />
     </LinearLayout>
 
@@ -47,7 +47,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
-            android:text="AI đang suy nghĩ..."
+            android:text="Đang tìm bài hát phù hợp..."
             android:textColor="@color/text_secondary"
             android:textSize="13sp"
             android:textStyle="italic" />

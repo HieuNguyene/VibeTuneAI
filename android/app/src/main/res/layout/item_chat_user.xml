@@ -23,7 +23,7 @@
             android:id="@+id/tvUserMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/spotify_black"
+            android:textColor="@color/on_primary_accent"
             android:textSize="14sp"
             android:textStyle="bold" />
 

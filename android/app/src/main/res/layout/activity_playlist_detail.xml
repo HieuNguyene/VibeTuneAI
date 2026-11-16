@@ -23,6 +23,7 @@
 
             <!-- Parallax Header Container with Gradient & Info -->
             <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutPlaylistHeaderParallax"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/bg_player_gradient_placeholder"
@@ -34,7 +35,7 @@
                     android:layout_width="160dp"
                     android:layout_height="160dp"
                     android:layout_marginTop="56dp"
-                    android:elevation="8dp"
+                    android:elevation="2dp"
                     android:scaleType="centerCrop"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -67,7 +68,7 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/tvPlaylistTitle"
-                    tools:text="Tạo bởi Spotify • 50 bài hát, khoảng 3 giờ" />
+                    tools:text="Tạo bởi VibeTune • 50 bài hát, khoảng 3 giờ" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -76,6 +77,7 @@
                 android:id="@+id/toolbarDetail"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
+                android:elevation="10dp"
                 app:layout_collapseMode="pin"
                 app:navigationIcon="@drawable/ic_chevron_down">
 
@@ -106,7 +108,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="@dimen/spacing_64dp">
+            android:paddingBottom="152dp">
 
             <!-- Action Bar: Like Playlist, Download, More, Shuffle / Play -->
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -151,13 +153,14 @@
                     android:layout_height="56dp"
                     android:background="@drawable/bg_circle_play_button"
                     android:contentDescription="Play All"
-                    android:elevation="6dp"
+                    android:elevation="8dp"
                     android:padding="@dimen/spacing_16dp"
                     android:src="@drawable/ic_play_arrow"
+                    android:stateListAnimator="@animator/btn_tactile_raise"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@color/black" />
+                    app:tint="@color/on_primary_accent" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -239,5 +242,40 @@
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- Floating Translucent Liquid-Glass Bottom Section (MiniPlayer + 3D Water-Droplet NavBar) -->
+    <LinearLayout
+        android:id="@+id/bottomNavigationContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@android:color/transparent"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:elevation="12dp"
+        android:orientation="vertical"
+        android:paddingStart="12dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="12dp">
+
+        <com.example.spotifyclone.ui.liquid.LiquidGlassMiniPlayerFrame
+            android:id="@+id/miniPlayerGlassFrame"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone">
+
+            <include
+                android:id="@+id/includedMiniPlayer"
+                layout="@layout/layout_mini_player" />
+        </com.example.spotifyclone.ui.liquid.LiquidGlassMiniPlayerFrame>
+
+        <com.example.spotifyclone.ui.liquid.LiquidDropletNavBar
+            android:id="@+id/liquidNavBar"
+            android:layout_width="match_parent"
+            android:layout_height="66dp"
+            android:layout_marginBottom="10dp" />
+
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -23,8 +23,19 @@ public class ApiClient {
         }
     }
 
-    // Tu dong nhan dien May Ao (Emulator: 10.0.2.2) hay Dien thoai that (Wi-Fi may tinh: 192.168.1.9)
+    public static synchronized void resetApiService() {
+        apiService = null;
+        retrofit = null;
+    }
+
+    // Tu dong nhan dien May Ao (Emulator: 10.0.2.2) hay Dien thoai that (Wi-Fi/Hotspot may tinh: 192.168.43.114)
     public static String getBaseUrl() {
+        if (appContext != null) {
+            String custom = SessionManager.getInstance(appContext).getCustomServerUrl();
+            if (custom != null && !custom.trim().isEmpty()) {
+                return custom.trim().endsWith("/") ? custom.trim() : custom.trim() + "/";
+            }
+        }
         boolean isEmulator = Build.FINGERPRINT.startsWith("generic")
                 || Build.FINGERPRINT.startsWith("unknown")
                 || Build.MODEL.contains("google_sdk")
@@ -35,7 +46,7 @@ public class ApiClient {
                 || Build.HARDWARE.contains("ranchu")
                 || Build.PRODUCT.contains("sdk");
 
-        return isEmulator ? "http://10.0.2.2:5000/" : "http://192.168.1.9:5000/";
+        return isEmulator ? "http://10.0.2.2:5000/" : "http://192.168.43.114:5000/";
     }
 
     public static synchronized ApiService getApiService() {
@@ -44,8 +55,8 @@ public class ApiClient {
             logging.setLevel(HttpLoggingInterceptor.Level.BODY);
 
             OkHttpClient client = new OkHttpClient.Builder()
-                    .connectTimeout(30, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS)
+                    .connectTimeout(8, TimeUnit.SECONDS)
+                    .readTimeout(15, TimeUnit.SECONDS)
                     .addInterceptor(chain -> {
                         Request original = chain.request();
                         Request.Builder requestBuilder = original.newBuilder();
@@ -56,34 +67,55 @@ public class ApiClient {
                                 requestBuilder.header("Authorization", "Bearer " + token);
                             }
                         }
+                        if (original.header("x-timezone-offset") == null) {
+                            int offsetMinutes = -java.util.TimeZone.getDefault().getOffset(System.currentTimeMillis()) / 60000;
+                            requestBuilder.header("x-timezone-offset", String.valueOf(offsetMinutes));
+                        }
                         return chain.proceed(requestBuilder.build());
                     })
                     .addInterceptor(logging)
                     .build();
 
-            com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
-                    .registerTypeAdapter(com.example.spotifyclone.data.model.Album.class,
-                            (com.google.gson.JsonDeserializer<com.example.spotifyclone.data.model.Album>) (json, typeOfT, context) -> {
-                                if (json.isJsonObject()) {
-                                    return new com.google.gson.Gson().fromJson(json, com.example.spotifyclone.data.model.Album.class);
-                                } else if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isString()) {
+            com.google.gson.TypeAdapterFactory stringOrObjectTypeAdapterFactory = new com.google.gson.TypeAdapterFactory() {
+                @Override
+                public <T> com.google.gson.TypeAdapter<T> create(com.google.gson.Gson gsonInstance, com.google.gson.reflect.TypeToken<T> type) {
+                    Class<?> rawType = type.getRawType();
+                    if (rawType != com.example.spotifyclone.data.model.Album.class
+                            && rawType != com.example.spotifyclone.data.model.Artist.class) {
+                        return null;
+                    }
+                    com.google.gson.TypeAdapter<T> delegate = gsonInstance.getDelegateAdapter(this, type);
+                    return new com.google.gson.TypeAdapter<T>() {
+                        @Override
+                        public void write(com.google.gson.stream.JsonWriter out, T value) throws java.io.IOException {
+                            delegate.write(out, value);
+                        }
+
+                        @Override
+                        public T read(com.google.gson.stream.JsonReader in) throws java.io.IOException {
+                            if (in.peek() == com.google.gson.stream.JsonToken.STRING) {
+                                String str = in.nextString();
+                                if (rawType == com.example.spotifyclone.data.model.Album.class) {
                                     com.example.spotifyclone.data.model.Album album = new com.example.spotifyclone.data.model.Album();
-                                    album.setId(json.getAsString());
-                                    return album;
-                                }
-                                return null;
-                            })
-                    .registerTypeAdapter(com.example.spotifyclone.data.model.Artist.class,
-                            (com.google.gson.JsonDeserializer<com.example.spotifyclone.data.model.Artist>) (json, typeOfT, context) -> {
-                                if (json.isJsonObject()) {
-                                    return new com.google.gson.Gson().fromJson(json, com.example.spotifyclone.data.model.Artist.class);
-                                } else if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isString()) {
+                                    album.setId(str);
+                                    return (T) album;
+                                } else if (rawType == com.example.spotifyclone.data.model.Artist.class) {
                                     com.example.spotifyclone.data.model.Artist artist = new com.example.spotifyclone.data.model.Artist();
-                                    artist.setId(json.getAsString());
-                                    return artist;
+                                    artist.setId(str);
+                                    return (T) artist;
                                 }
+                            } else if (in.peek() == com.google.gson.stream.JsonToken.NULL) {
+                                in.nextNull();
                                 return null;
-                            })
+                            }
+                            return delegate.read(in);
+                        }
+                    };
+                }
+            };
+
+            com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+                    .registerTypeAdapterFactory(stringOrObjectTypeAdapterFactory)
                     .create();
 
             retrofit = new Retrofit.Builder()

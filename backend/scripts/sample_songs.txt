@@ -1,0 +1,13 @@
+# Danh sách bài hát muốn tự động tải về hệ thống Spotify Clone
+# Bạn có thể dán Link YouTube hoặc Gõ trực tiếp Tên bài hát + Tên ca sĩ
+# Dòng nào bắt đầu bằng dấu # sẽ được bỏ qua
+
+Đừng Làm Trái Tim Anh Đau Sơn Tùng M-TP
+Nơi Này Có Anh Sơn Tùng M-TP
+Bước Qua Mùa Cô Đơn Vũ
+Bình Yên Vũ
+Đi Về Nhà Đen Vâu JustaTee
+Từng Quen MCK
+Đom Đóm Jack - J97
+Attention Charlie Puth
+Shape of You Ed Sheeran

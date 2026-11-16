@@ -7,6 +7,8 @@ const OtpVerification = require('../models/OtpVerification');
 const SmsService = require('./smsService');
 const ApiError = require('../utils/ApiError');
 const config = require('../config/environment');
+const { verifyGoogleIdToken } = require('./googleAuthVerifier');
+const { sanitizeMediaUrl } = require('../utils/fileValidator');
 
 class AuthService {
   /**
@@ -27,7 +29,20 @@ class AuthService {
   /**
    * Đăng ký người dùng mới
    */
-  static async register({ username, email, password, displayName }) {
+  static async register({ username, email, password, displayName } = {}) {
+    if (typeof username !== 'string' || !username.trim()) {
+      throw ApiError.badRequest('Tên đăng nhập là bắt buộc');
+    }
+    if (typeof email !== 'string' || !email.trim()) {
+      throw ApiError.badRequest('Email là bắt buộc');
+    }
+    if (typeof password !== 'string' || password.length < 6) {
+      throw ApiError.badRequest('Mật khẩu phải có ít nhất 6 ký tự');
+    }
+    username = username.trim();
+    email = email.trim().toLowerCase();
+    displayName = (typeof displayName === 'string' && displayName.trim()) ? displayName.trim() : username;
+
     // 1. Kiểm tra username hoặc email đã tồn tại chưa
     const existingUser = await User.findOne({
       $or: [{ email: email.toLowerCase() }, { username: username.toLowerCase() }]
@@ -50,7 +65,7 @@ class AuthService {
       email: email.toLowerCase().trim(),
       passwordHash,
       displayName: displayName.trim(),
-      avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}`
+      avatarUrl: `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(displayName)}`
     });
 
     // 4. Khởi tạo 1-1 UserPreference mặc định
@@ -107,6 +122,10 @@ class AuthService {
       throw ApiError.forbidden('Your account has been deactivated. Please contact support.');
     }
 
+    if (!user.passwordHash) {
+      throw ApiError.badRequest('Tài khoản này được đăng ký qua Google. Vui lòng đăng nhập bằng Google.');
+    }
+
     // 2. So khớp mật khẩu bcrypt
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
@@ -156,9 +175,17 @@ class AuthService {
    * Cập nhật gu âm nhạc & tuỳ chọn người dùng
    */
   static async updatePreferences(userId, updateData) {
+    const allowedFields = ['favoriteGenreIds', 'favoriteArtistIds', 'streamingQuality', 'themeMode', 'allowAiRecommendations'];
+    const safeUpdate = {};
+    for (const key of allowedFields) {
+      if (updateData && Object.prototype.hasOwnProperty.call(updateData, key) && updateData[key] !== undefined) {
+        safeUpdate[key] = updateData[key];
+      }
+    }
+
     const preferences = await UserPreference.findOneAndUpdate(
       { userId },
-      { $set: updateData },
+      { $set: safeUpdate },
       { new: true, upsert: true, runValidators: true }
     )
       .populate('favoriteGenreIds', 'name colorCode')
@@ -172,11 +199,11 @@ class AuthService {
    */
   static async updateProfile(userId, { displayName, avatarUrl }) {
     const updateData = {};
-    if (displayName && displayName.trim()) {
+    if (typeof displayName === 'string' && displayName.trim()) {
       updateData.displayName = displayName.trim();
     }
     if (avatarUrl !== undefined && avatarUrl !== null) {
-      updateData.avatarUrl = avatarUrl.trim();
+      updateData.avatarUrl = sanitizeMediaUrl(avatarUrl);
     }
 
     if (Object.keys(updateData).length === 0) {
@@ -211,6 +238,10 @@ class AuthService {
     const user = await User.findById(userId).select('+passwordHash');
     if (!user) {
       throw ApiError.notFound('User not found');
+    }
+
+    if (!user.passwordHash) {
+      throw ApiError.badRequest('Tài khoản này đăng nhập qua Google và chưa thiết lập mật khẩu truyền thống.');
     }
 
     // So khớp mật khẩu cũ
@@ -311,7 +342,7 @@ class AuthService {
       phoneNumber: cleanPhone,
       passwordHash,
       displayName: displayName.trim(),
-      avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName.trim())}`
+      avatarUrl: `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(displayName.trim())}`
     });
 
     // 5. Khởi tạo UserPreference mặc định
@@ -346,26 +377,22 @@ class AuthService {
   }
 
   /**
-   * Đăng nhập hoặc liên kết bằng Google Account
+   * Đăng nhập hoặc liên kết bằng Google Account (xác thực Google ID Token thật qua JWKS RS256)
    */
-  static async loginWithGoogle({ googleId, email, displayName, avatarUrl }) {
-    if (!googleId && !email) {
-      throw ApiError.badRequest('Thông tin tài khoản Google không hợp lệ');
-    }
+  static async loginWithGoogle({ idToken }, verifyOptions = {}) {
+    const { googleId, email, displayName, avatarUrl } = await verifyGoogleIdToken(idToken, verifyOptions);
+    const safeAvatarUrl = sanitizeMediaUrl(avatarUrl || '');
 
-    let user = null;
-    if (googleId) {
-      user = await User.findOne({ googleId });
-    }
+    let user = await User.findOne({ googleId });
 
     if (!user && email) {
       user = await User.findOne({ email: email.toLowerCase().trim() });
       if (user) {
-        if (googleId && !user.googleId) {
+        if (!user.googleId) {
           user.googleId = googleId;
         }
-        if (avatarUrl && !user.avatarUrl) {
-          user.avatarUrl = avatarUrl;
+        if (safeAvatarUrl && !user.avatarUrl) {
+          user.avatarUrl = safeAvatarUrl;
         }
         await user.save();
       }
@@ -381,10 +408,10 @@ class AuthService {
 
       user = await User.create({
         username,
-        email: email ? email.toLowerCase().trim() : `${username}@google.vibe.vn`,
+        email: email.toLowerCase().trim(),
         googleId,
         displayName: displayName?.trim() || (email ? email.split('@')[0] : 'Google User'),
-        avatarUrl: avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName || 'Google')}`
+        avatarUrl: safeAvatarUrl || `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(displayName || 'Google')}`
       });
 
       await UserPreference.create({

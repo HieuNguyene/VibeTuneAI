@@ -9,16 +9,25 @@ const clearDatabase = async () => {
     await mongoose.connect(config.mongodbUri);
     logger.success('Ket noi thanh cong.');
 
-    logger.info('Dang xoa toan bo bai hat, album, ca si va du lieu ao...');
+    const OtpVerification = require('../models/OtpVerification');
+
+    logger.info('Dang xoa toan bo bai hat, album, ca si va du lieu...');
     await Promise.all([
       models.Song.deleteMany({}),
       models.Album.deleteMany({}),
       models.Artist.deleteMany({}),
+      models.Genre.deleteMany({}),
       models.Playlist.deleteMany({}),
       models.PlaylistTrack.deleteMany({}),
       models.ListeningHistory.deleteMany({}),
+      models.ListeningEvent.deleteMany({}),
+      models.PlaySession.deleteMany({}),
+      models.UserInteraction.deleteMany({}),
       models.UserFavorite.deleteMany({}),
-      models.AiPromptLog.deleteMany({})
+      models.UserPreference.deleteMany({}),
+      models.Notification.deleteMany({}),
+      models.AiPromptLog.deleteMany({}),
+      OtpVerification.deleteMany({})
     ]);
 
     logger.success('====================================================');

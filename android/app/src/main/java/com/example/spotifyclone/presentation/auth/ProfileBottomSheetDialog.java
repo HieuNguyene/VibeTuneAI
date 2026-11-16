@@ -43,6 +43,15 @@ public class ProfileBottomSheetDialog extends BottomSheetDialogFragment {
 
         bindUserData();
 
+        com.example.spotifyclone.util.ThemeManager.bindModeSelector(
+                requireContext(),
+                binding.btnThemeLight,
+                binding.btnThemeDark,
+                binding.btnThemeSystem,
+                binding.tvThemeModeLabel,
+                this::dismissAllowingStateLoss
+        );
+
         // Account Settings Click -> Mo ProfileActivity
         binding.btnAccountSettings.setOnClickListener(v -> {
             Intent intent = new Intent(requireContext(), ProfileActivity.class);
@@ -57,21 +66,14 @@ public class ProfileBottomSheetDialog extends BottomSheetDialogFragment {
         });
 
         // Audio Quality Click
-        binding.btnAudioQuality.setOnClickListener(v -> {
-            String[] qualities = {
-                    "Tự động (Khuyên dùng)",
-                    "Bình thường (160 kbps)",
-                    "Cao (320 kbps)",
-                    "Rất cao / Lossless (FLAC)"
-            };
-            new MaterialAlertDialogBuilder(requireContext(), com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog)
-                    .setTitle(R.string.audio_quality)
-                    .setSingleChoiceItems(qualities, 2, (dialog, which) -> {
-                        Toast.makeText(requireContext(), "Đã chọn chất lượng âm thanh: " + qualities[which], Toast.LENGTH_SHORT).show();
-                        dialog.dismiss();
-                    })
-                    .setNegativeButton(R.string.dialog_cancel, null)
-                    .show();
+        binding.btnAudioQuality.setOnClickListener(v ->
+                com.example.spotifyclone.util.AudioQualityHelper.showQualityPickerDialog(requireContext(), null));
+
+        // Listening History Click (Lịch sử nhạc đã nghe theo ngày)
+        binding.btnListeningHistory.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), com.example.spotifyclone.presentation.history.ListeningHistoryActivity.class);
+            startActivity(intent);
+            dismiss();
         });
 
         // Logout Flow with Confirmation Dialog
@@ -110,8 +112,11 @@ public class ProfileBottomSheetDialog extends BottomSheetDialogFragment {
     }
 
     private void performLogout() {
-        // Dung phat nhac
+        // Dung phat nhac va ngat ket noi WebSocket real-time
         MusicPlayerManager.getInstance().stop();
+        com.example.spotifyclone.data.remote.NotificationWebSocketManager
+                .getInstance(requireContext())
+                .disconnect();
 
         // Xoa phien dang nhap
         sessionManager.clearSession();

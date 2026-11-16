@@ -207,6 +207,33 @@
                 android:textSize="15sp" />
         </LinearLayout>
 
+        <!-- 6. Gỡ khỏi danh sách phát (Chỉ hiển thị khi là chủ sở hữu playlist) -->
+        <LinearLayout
+            android:id="@+id/itemSongRemoveFromPlaylist"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_delete"
+                app:tint="@color/spotify_error" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_16dp"
+                android:layout_weight="1"
+                android:text="Xóa khỏi danh sách phát này"
+                android:textAppearance="@style/TextAppearance.Spotify.Body"
+                android:textColor="@color/spotify_error"
+                android:textSize="15sp" />
+        </LinearLayout>
+
     </LinearLayout>
 
 </LinearLayout>

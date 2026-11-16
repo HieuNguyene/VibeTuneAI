@@ -18,7 +18,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Spotify Style White Search Bar Pill -->
+    <!-- 3D Liquid-Glass Search Bar Pill -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cvSearchBar"
         android:layout_width="match_parent"
@@ -26,25 +26,26 @@
         android:layout_marginStart="@dimen/spacing_16dp"
         android:layout_marginTop="@dimen/spacing_16dp"
         android:layout_marginEnd="@dimen/spacing_16dp"
-        app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="@dimen/corner_radius_card"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:cardCornerRadius="24dp"
         app:cardElevation="0dp"
         app:layout_constraintTop_toBottomOf="@id/tvSearchHeader">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@drawable/bg_btn_3d_dropdown"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingStart="@dimen/spacing_12dp"
-            android:paddingEnd="@dimen/spacing_12dp">
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
 
             <ImageView
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:contentDescription="Search Icon"
                 android:src="@drawable/ic_search"
-                app:tint="@color/spotify_black" />
+                app:tint="@color/icon_primary" />
 
             <EditText
                 android:id="@+id/etSearchQuery"
@@ -57,8 +58,8 @@
                 android:imeOptions="actionSearch"
                 android:inputType="text"
                 android:maxLines="1"
-                android:textColor="@color/black"
-                android:textColorHint="#757575"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary"
                 android:textSize="14sp" />
 
             <ImageButton
@@ -69,7 +70,7 @@
                 android:contentDescription="Clear text"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
                 android:visibility="gone"
-                app:tint="@color/black" />
+                app:tint="@color/icon_primary" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -93,7 +94,7 @@
         android:layout_marginTop="@dimen/spacing_12dp"
         android:layout_marginEnd="@dimen/spacing_12dp"
         android:clipToPadding="false"
-        android:paddingBottom="84dp"
+        android:paddingBottom="144dp"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvBrowseAllHeader"
@@ -134,7 +135,7 @@
         android:layout_height="0dp"
         android:layout_marginTop="@dimen/spacing_12dp"
         android:clipToPadding="false"
-        android:paddingBottom="84dp"
+        android:paddingBottom="144dp"
         android:visibility="gone"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"

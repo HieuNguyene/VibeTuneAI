@@ -65,18 +65,24 @@ public class GenreCardAdapter extends RecyclerView.Adapter<GenreCardAdapter.Genr
         public void bind(Genre genre) {
             binding.tvGenreTitle.setText(genre.getName());
 
-            if (genre.getColorCode() != null && !genre.getColorCode().isEmpty()) {
+            int cardColor = Color.parseColor("#242830");
+            if (genre.getColorCode() != null && !genre.getColorCode().trim().isEmpty()) {
                 try {
-                    binding.getRoot().setCardBackgroundColor(Color.parseColor(genre.getColorCode()));
+                    cardColor = Color.parseColor(genre.getColorCode().trim());
                 } catch (Exception ignored) {}
             }
+            binding.getRoot().setCardBackgroundColor(cardColor);
 
-            if (genre.getIconUrl() != null && !genre.getIconUrl().isEmpty()) {
+            String rawIcon = genre.getIconUrl() != null ? genre.getIconUrl().trim() : "";
+            if (!rawIcon.isEmpty()) {
                 Glide.with(binding.ivGenreThumbnail.getContext())
-                        .load(genre.getIconUrl())
+                        .load(com.example.spotifyclone.data.remote.ApiClient.resolveMediaUrl(rawIcon))
                         .placeholder(R.drawable.bg_card_rounded)
                         .error(R.drawable.bg_card_rounded)
                         .into(binding.ivGenreThumbnail);
+            } else {
+                Glide.with(binding.ivGenreThumbnail.getContext()).clear(binding.ivGenreThumbnail);
+                binding.ivGenreThumbnail.setImageResource(R.drawable.bg_card_rounded);
             }
 
             itemView.setOnClickListener(v -> {

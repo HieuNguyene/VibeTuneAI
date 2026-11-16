@@ -58,7 +58,7 @@
                 android:layout_width="14dp"
                 android:layout_height="14dp"
                 android:layout_marginEnd="4dp"
-                android:src="@drawable/ic_sparkle_ai"
+                android:src="@drawable/ic_music_pin"
                 android:visibility="gone"
                 app:tint="@color/spotify_green" />
 

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Kept intentionally transparent because LiquidGlassMiniPlayerFrame renders
+     live frosted backdrop blur, curved refraction, and 3D glass rim directly. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="@color/mini_player_bg" />
-    <corners android:radius="@dimen/corner_radius_card" />
+    <solid android:color="@android:color/transparent" />
+    <corners android:radius="22dp" />
 </shape>

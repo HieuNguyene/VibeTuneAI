@@ -10,6 +10,7 @@ public class SpotifyApp extends Application {
     public void onCreate() {
         super.onCreate();
         appContext = getApplicationContext();
+        com.example.spotifyclone.util.ThemeManager.applySavedTheme(this);
     }
 
     public static Context getAppContext() {

@@ -26,6 +26,7 @@ public class AiChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public interface OnChatInteractionListener {
         void onPlaySong(Song song, List<Song> songList, int position);
         void onQuickReplyClick(String prompt);
+        void onCreatePlaylistClick(AiChatMessage message);
     }
 
     private final List<AiChatMessage> messages = new ArrayList<>();
@@ -56,6 +57,10 @@ public class AiChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     public boolean isEmpty() {
         return messages.isEmpty();
+    }
+
+    public List<AiChatMessage> getMessages() {
+        return messages;
     }
 
     public void removeLoading() {
@@ -124,6 +129,7 @@ public class AiChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         private final TextView tvMessage;
         private final TextView tvTime;
         private final RecyclerView rvSongs;
+        private final View btnCreatePlaylistFromAi;
         private final View hsvSuggestions;
         private final ChipGroup chipGroupFollowUps;
 
@@ -132,6 +138,7 @@ public class AiChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             tvMessage = itemView.findViewById(R.id.tvAiMessage);
             tvTime = itemView.findViewById(R.id.tvAiTime);
             rvSongs = itemView.findViewById(R.id.rvAiSongs);
+            btnCreatePlaylistFromAi = itemView.findViewById(R.id.btnCreatePlaylistFromAi);
             hsvSuggestions = itemView.findViewById(R.id.hsvSuggestions);
             chipGroupFollowUps = itemView.findViewById(R.id.chipGroupFollowUps);
         }
@@ -144,6 +151,14 @@ public class AiChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             List<Song> songs = message.getSuggestedSongs();
             if (songs != null && !songs.isEmpty()) {
                 rvSongs.setVisibility(View.VISIBLE);
+                if (btnCreatePlaylistFromAi != null) {
+                    btnCreatePlaylistFromAi.setVisibility(View.VISIBLE);
+                    btnCreatePlaylistFromAi.setOnClickListener(v -> {
+                        if (listener != null) {
+                            listener.onCreatePlaylistClick(message);
+                        }
+                    });
+                }
                 rvSongs.setLayoutManager(new LinearLayoutManager(itemView.getContext()));
                 AiChatSongAdapter songAdapter = new AiChatSongAdapter(songs, (song, songList, position) -> {
                     if (listener != null) {
@@ -153,6 +168,9 @@ public class AiChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 rvSongs.setAdapter(songAdapter);
             } else {
                 rvSongs.setVisibility(View.GONE);
+                if (btnCreatePlaylistFromAi != null) {
+                    btnCreatePlaylistFromAi.setVisibility(View.GONE);
+                }
             }
 
             // Bind Follow-up Suggestion Chips
@@ -164,10 +182,12 @@ public class AiChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                     Chip chip = new Chip(itemView.getContext(), null, com.google.android.material.R.style.Widget_MaterialComponents_Chip_Action);
                     chip.setText(replyText);
                     chip.setTextSize(12f);
-                    chip.setTextColor(itemView.getContext().getResources().getColor(R.color.text_primary));
-                    chip.setChipBackgroundColorResource(R.color.spotify_surface);
-                    chip.setChipStrokeColorResource(R.color.spotify_stroke);
-                    chip.setChipStrokeWidth(1f);
+                    chip.setTextColor(androidx.core.content.ContextCompat.getColor(itemView.getContext(), R.color.text_primary));
+                    chip.setChipBackgroundColorResource(R.color.liquid_glass_chip_bg);
+                    chip.setChipStrokeColorResource(R.color.liquid_glass_chip_stroke);
+                    chip.setChipStrokeWidth(2f);
+                    chip.setChipCornerRadius(999f);
+                    com.example.spotifyclone.ui.liquid.LiquidDropletHelper.attachDropletSpring(chip);
                     chip.setOnClickListener(v -> {
                         if (listener != null) {
                             listener.onQuickReplyClick(replyText);

@@ -28,6 +28,7 @@ import com.example.spotifyclone.presentation.search.SearchResultAdapter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -45,6 +46,8 @@ public class ArtistDetailActivity extends AppCompatActivity implements SearchRes
     private SearchResultAdapter trackAdapter;
     private AlbumCardAdapter albumAdapter;
     private final List<Song> songList = new ArrayList<>();
+    private final List<Song> originalSongList = new ArrayList<>();
+    private String currentSort = "popular";
     private String artistId;
     private String artistName;
     private boolean isFollowing = false;
@@ -54,6 +57,7 @@ public class ArtistDetailActivity extends AppCompatActivity implements SearchRes
         super.onCreate(savedInstanceState);
         binding = ActivityArtistDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        com.example.spotifyclone.util.ThemeManager.applySystemBarsAppearance(this);
 
         // Bù trừ an toàn thanh trạng thái cho Toolbar, AppBar và đáy cho danh sách cuộn
         com.example.spotifyclone.util.WindowInsetHelper.applyCollapsingToolbarInsets(
@@ -68,6 +72,7 @@ public class ArtistDetailActivity extends AppCompatActivity implements SearchRes
         setupToolbar();
         setupRecyclerView();
         setupActions();
+        setupSortChips();
         loadArtistData();
     }
 
@@ -116,6 +121,7 @@ public class ArtistDetailActivity extends AppCompatActivity implements SearchRes
             int totalScrollRange = appBarLayout.getTotalScrollRange();
             if (totalScrollRange == 0) return;
             float ratio = (float) Math.abs(verticalOffset) / (float) totalScrollRange;
+            binding.layoutArtistHeaderParallax.setAlpha(Math.max(0f, 1f - ratio * 1.6f));
             binding.tvToolbarTitle.setAlpha(ratio >= 0.7f ? (ratio - 0.7f) / 0.3f : 0f);
         });
     }
@@ -132,6 +138,7 @@ public class ArtistDetailActivity extends AppCompatActivity implements SearchRes
             intent.putExtra(PlaylistDetailActivity.EXTRA_PLAYLIST_ID, album.getId());
             intent.putExtra(PlaylistDetailActivity.EXTRA_PLAYLIST_TITLE, album.getTitle());
             intent.putExtra(PlaylistDetailActivity.EXTRA_PLAYLIST_COVER, album.getCoverImageUrl());
+            intent.putExtra(PlaylistDetailActivity.EXTRA_ORIGIN_DESTINATION_ID, R.id.navigation_home);
             startActivity(intent);
         });
         binding.rvArtistAlbums.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -149,18 +156,117 @@ public class ArtistDetailActivity extends AppCompatActivity implements SearchRes
         });
 
         binding.btnFollow.setOnClickListener(v -> {
+            if (artistId == null || artistId.isEmpty()) return;
+            // Optimistic update
             isFollowing = !isFollowing;
-            if (isFollowing) {
-                binding.btnFollow.setText("Đang theo dõi");
-                binding.btnFollow.setTextColor(getColor(R.color.spotify_green));
-                binding.btnFollow.setStrokeColorResource(R.color.spotify_green);
-                Toast.makeText(this, "Đã theo dõi " + (artistName != null ? artistName : "nghệ sĩ"), Toast.LENGTH_SHORT).show();
-            } else {
-                binding.btnFollow.setText("Theo dõi");
-                binding.btnFollow.setTextColor(getColor(R.color.text_primary));
-                binding.btnFollow.setStrokeColorResource(R.color.spotify_stroke);
-            }
+            updateFollowButtonUI(isFollowing);
+
+            ApiClient.getApiService().toggleFollowArtist(artistId).enqueue(new Callback<ApiResponse<Map<String, Object>>>() {
+                @Override
+                public void onResponse(@NonNull Call<ApiResponse<Map<String, Object>>> call, @NonNull Response<ApiResponse<Map<String, Object>>> response) {
+                    if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
+                        Map<String, Object> data = response.body().getData();
+                        Object followObj = data.get("isFollowed");
+                        if (followObj instanceof Boolean) {
+                            isFollowing = (Boolean) followObj;
+                            updateFollowButtonUI(isFollowing);
+                        }
+                        Object countObj = data.get("followersCount");
+                        if (countObj instanceof Number) {
+                            long count = ((Number) countObj).longValue();
+                            binding.tvArtistFollowers.setText(String.format(Locale.getDefault(), "%,d người theo dõi", count));
+                        }
+                        String msg = response.body().getMessage();
+                        if (msg != null && !msg.isEmpty()) {
+                            Toast.makeText(ArtistDetailActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<ApiResponse<Map<String, Object>>> call, @NonNull Throwable t) {
+                    // Rollback on failure
+                    isFollowing = !isFollowing;
+                    updateFollowButtonUI(isFollowing);
+                    Toast.makeText(ArtistDetailActivity.this, "Không thể kết nối đến máy chủ", Toast.LENGTH_SHORT).show();
+                }
+            });
         });
+    }
+
+    private void updateFollowButtonUI(boolean following) {
+        if (following) {
+            binding.btnFollow.setText("Đang theo dõi");
+            binding.btnFollow.setTextColor(getColor(R.color.spotify_green));
+            binding.btnFollow.setStrokeColorResource(R.color.spotify_green);
+        } else {
+            binding.btnFollow.setText("Theo dõi");
+            binding.btnFollow.setTextColor(getColor(R.color.text_primary));
+            binding.btnFollow.setStrokeColorResource(R.color.spotify_stroke);
+        }
+    }
+
+    private void setupSortChips() {
+        com.example.spotifyclone.ui.liquid.LiquidDropletHelper.selectPill(binding.chipSortPopular, true, false);
+        com.example.spotifyclone.ui.liquid.LiquidDropletHelper.attachDropletSpring(
+                binding.btnPlayAll,
+                binding.btnFollow,
+                binding.chipSortPopular,
+                binding.chipSortAz,
+                binding.chipSortNewest,
+                binding.chipSortFavorite
+        );
+        binding.chipSortPopular.setOnClickListener(v -> selectSortChip("popular"));
+        binding.chipSortAz.setOnClickListener(v -> selectSortChip("az"));
+        binding.chipSortNewest.setOnClickListener(v -> selectSortChip("newest"));
+        binding.chipSortFavorite.setOnClickListener(v -> selectSortChip("favorite"));
+    }
+
+    private void selectSortChip(String sort) {
+        currentSort = sort;
+        android.widget.TextView target = binding.chipSortPopular;
+        if ("az".equals(sort)) {
+            target = binding.chipSortAz;
+        } else if ("newest".equals(sort)) {
+            target = binding.chipSortNewest;
+        } else if ("favorite".equals(sort)) {
+            target = binding.chipSortFavorite;
+        }
+        binding.chipSortPopular.setTypeface(null, target == binding.chipSortPopular ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        binding.chipSortAz.setTypeface(null, target == binding.chipSortAz ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        binding.chipSortNewest.setTypeface(null, target == binding.chipSortNewest ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        binding.chipSortFavorite.setTypeface(null, target == binding.chipSortFavorite ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        com.example.spotifyclone.ui.liquid.LiquidDropletHelper.selectPill(target, true, true);
+
+        applySongSort();
+    }
+
+    private void applySongSort() {
+        if (originalSongList.isEmpty()) return;
+        List<Song> sorted = new ArrayList<>(originalSongList);
+        if ("az".equals(currentSort)) {
+            sorted.sort((a, b) -> {
+                String tA = a.getTitle() != null ? a.getTitle() : "";
+                String tB = b.getTitle() != null ? b.getTitle() : "";
+                return tA.compareToIgnoreCase(tB);
+            });
+        } else if ("newest".equals(currentSort)) {
+            java.util.Collections.reverse(sorted);
+        } else if ("favorite".equals(currentSort)) {
+            sorted.sort((a, b) -> {
+                if (a.isLiked() != b.isLiked()) {
+                    return a.isLiked() ? -1 : 1;
+                }
+                return Long.compare(b.getLikesCount(), a.getLikesCount());
+            });
+        } else {
+            // "popular": Nghe nhiều nhất
+            sorted.sort((a, b) -> Long.compare(b.getPlaysCount(), a.getPlaysCount()));
+        }
+
+        songList.clear();
+        songList.addAll(sorted);
+        trackAdapter.setSongs(songList);
     }
 
     private void loadArtistData() {
@@ -185,6 +291,9 @@ public class ArtistDetailActivity extends AppCompatActivity implements SearchRes
                     Artist artist = detailData.getArtist();
                     if (artist != null) {
                         artistName = artist.getName();
+                        isFollowing = artist.isFollowed();
+                        updateFollowButtonUI(isFollowing);
+
                         binding.tvArtistName.setText(artist.getName());
                         binding.tvToolbarTitle.setText(artist.getName());
 
@@ -209,17 +318,20 @@ public class ArtistDetailActivity extends AppCompatActivity implements SearchRes
 
                     List<Song> songs = detailData.getSongs();
                     songList.clear();
+                    originalSongList.clear();
                     if (songs != null && !songs.isEmpty()) {
-                        songList.addAll(songs);
-                        trackAdapter.setSongs(songList);
+                        originalSongList.addAll(songs);
+                        applySongSort();
                         binding.tvSongsCount.setText(songList.size() + " bài hát");
                         binding.layoutArtistEmptyState.setVisibility(View.GONE);
                         binding.rvArtistTracks.setVisibility(View.VISIBLE);
+                        binding.scrollArtistSortChips.setVisibility(View.VISIBLE);
                     } else {
                         trackAdapter.setSongs(new ArrayList<>());
                         binding.tvSongsCount.setText("0 bài hát");
                         binding.layoutArtistEmptyState.setVisibility(View.VISIBLE);
                         binding.rvArtistTracks.setVisibility(View.GONE);
+                        binding.scrollArtistSortChips.setVisibility(View.GONE);
                     }
 
                     List<Album> albums = detailData.getAlbums();

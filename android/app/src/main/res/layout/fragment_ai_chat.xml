@@ -23,7 +23,7 @@
         <ImageView
             android:layout_width="26dp"
             android:layout_height="26dp"
-            android:src="@drawable/ic_sparkle_ai"
+            android:src="@drawable/ic_assistant_wave"
             app:tint="@color/spotify_green" />
 
         <LinearLayout
@@ -36,7 +36,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="AI Music Assistant"
+                android:text="Trợ lý Âm nhạc"
                 android:textColor="@color/text_primary"
                 android:textSize="17sp"
                 android:textStyle="bold" />
@@ -44,7 +44,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Trợ lý âm nhạc thông minh • Sẵn sàng"
+                android:text="Tìm bài hát theo tâm trạng • Sẵn sàng"
                 android:textColor="@color/spotify_green"
                 android:textSize="11sp" />
         </LinearLayout>
@@ -55,7 +55,7 @@
             android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Làm mới cuộc trò chuyện"
-            android:src="@android:drawable/ic_menu_rotate"
+            android:src="@drawable/ic_refresh"
             app:tint="@color/text_secondary" />
 
     </LinearLayout>
@@ -76,42 +76,53 @@
             android:id="@+id/chipGroupQuickPrompts"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:chipSpacingHorizontal="8dp"
             app:singleLine="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipPromptCreateAiPlaylist"
+                style="@style/Widget.Spotify.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="✨ Tạo playlist bằng AI"
+                app:chipIcon="@drawable/ic_playlist_add"
+                app:chipIconSize="16dp"
+                app:chipIconVisible="true" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipPromptChill"
                 style="@style/Widget.Spotify.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="☕ Nhạc chill thư giãn" />
+                android:text="Nhạc chill thư giãn" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipPromptHot"
                 style="@style/Widget.Spotify.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🔥 Top thịnh hành" />
+                android:text="Top thịnh hành" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipPromptSonTung"
                 style="@style/Widget.Spotify.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🌟 Sơn Tùng M-TP" />
+                android:text="Sơn Tùng M-TP" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipPromptSad"
                 style="@style/Widget.Spotify.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🌧️ Nhạc buồn tâm trạng" />
+                android:text="Nhạc buồn tâm trạng" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipPromptFocus"
                 style="@style/Widget.Spotify.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📚 Nhạc tập trung học bài" />
+                android:text="Nhạc tập trung học bài" />
 
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
@@ -121,7 +132,7 @@
         android:id="@+id/viewDivider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#1AFFFFFF"
+        android:background="@color/divider_color"
         app:layout_constraintTop_toBottomOf="@id/hsvQuickPrompts" />
 
     <!-- Chat Messages RecyclerView -->
@@ -135,7 +146,13 @@
         app:layout_constraintBottom_toTopOf="@id/layoutBottomInput"
         app:layout_constraintTop_toBottomOf="@id/viewDivider" />
 
-    <!-- Bottom Input Container -->
+    <!-- Bottom Input Divider & Container -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider_color"
+        app:layout_constraintBottom_toTopOf="@id/layoutBottomInput" />
+
     <LinearLayout
         android:id="@+id/layoutBottomInput"
         android:layout_width="match_parent"
@@ -166,7 +183,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@null"
-                android:hint="Nhắn tin với AI (VD: Gợi ý nhạc chill)..."
+                android:hint="Nhập tâm trạng, thể loại hoặc tên nghệ sĩ..."
                 android:inputType="textMultiLine|textCapSentences"
                 android:maxLines="3"
                 android:textColor="@color/text_primary"
@@ -179,12 +196,13 @@
             android:layout_width="44dp"
             android:layout_height="44dp"
             android:layout_marginStart="8dp"
-            android:background="@drawable/bg_circle_icon"
-            android:backgroundTint="@color/spotify_green"
+            android:background="@drawable/bg_circle_play_button"
             android:contentDescription="Gửi tin nhắn"
+            android:elevation="6dp"
             android:padding="10dp"
             android:src="@drawable/ic_send"
-            app:tint="@color/spotify_black" />
+            android:stateListAnimator="@animator/btn_tactile_raise"
+            app:tint="@color/on_primary_accent" />
 
     </LinearLayout>
 

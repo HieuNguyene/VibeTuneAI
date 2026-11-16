@@ -1,6 +1,7 @@
 const AiService = require('../services/aiService');
 const AiChatService = require('../services/aiChatService');
 const ApiResponse = require('../utils/ApiResponse');
+const User = require('../models/User');
 
 class AiController {
   static async chat(req, res, next) {
@@ -17,10 +18,15 @@ class AiController {
   static async generatePlaylist(req, res, next) {
     try {
       const { prompt, savePlaylist } = req.body;
+      let userId = req.user ? req.user._id : null;
+      if (!userId && savePlaylist !== false) {
+        const fallbackUser = await User.findOne({ role: 'user' }) || await User.findOne();
+        if (fallbackUser) userId = fallbackUser._id;
+      }
       const result = await AiService.generatePlaylistFromPrompt(
-        req.user._id,
+        userId,
         prompt,
-        savePlaylist !== false
+        savePlaylist !== false && !!userId
       );
       return ApiResponse.success(res, result, 'AI playlist generated successfully');
     } catch (error) {

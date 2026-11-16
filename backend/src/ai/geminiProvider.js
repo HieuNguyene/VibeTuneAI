@@ -17,14 +17,24 @@ class GeminiProvider {
     try {
       const { GoogleGenerativeAI } = require('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(config.geminiApiKey);
-      const model = genAI.getGenerativeModel({
-        model: 'gemini-1.5-flash',
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: 0.2
-        },
-        systemInstruction: `
-Bạn là chuyên gia phân loại âm nhạc của hệ thống Spotify.
+      const modelCandidates = [
+        process.env.LLM_MODEL,
+        'gemini-1.5-flash',
+        'gemini-2.0-flash'
+      ].filter(Boolean);
+      let parsed = null;
+      let activeModel = modelCandidates[0] || 'gemini-1.5-flash';
+
+      for (const modelName of modelCandidates) {
+        try {
+          const model = genAI.getGenerativeModel({
+            model: modelName,
+            generationConfig: {
+              responseMimeType: 'application/json',
+              temperature: 0.2
+            },
+            systemInstruction: `
+Bạn là chuyên gia phân loại âm nhạc của hệ thống VibeTune.
 Nhiệm vụ: Phân tích prompt ngôn ngữ tự nhiên của người dùng và trích xuất thành định dạng JSON tiêu chuẩn.
 Chỉ trả về JSON thuần tuý:
 {
@@ -36,14 +46,27 @@ Chỉ trả về JSON thuần tuý:
   "keywords": ["từ khoá bài hát", "chủ đề", "nghệ sĩ nếu có"]
 }
 `
-      });
+          });
 
-      const result = await model.generateContent(userPrompt);
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(`Timeout 2500ms on ${modelName}`)), 2500)
+          );
+          const result = await Promise.race([model.generateContent(userPrompt), timeoutPromise]);
+          let text = result.response.text() || '';
+          text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+          parsed = JSON.parse(text);
+          activeModel = modelName;
+          break;
+        } catch (err) {
+          logger.warn(`GeminiProvider: Model ${modelName} failed (${err.message}), trying next candidate...`);
+        }
+      }
+
+      if (!parsed) {
+        throw new Error('All Gemini models failed to generate content');
+      }
+
       const latencyMs = Date.now() - startTime;
-      let text = result.response.text() || '';
-      text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-
-      const parsed = JSON.parse(text);
 
       return {
         criteria: {
@@ -54,7 +77,7 @@ Chỉ trả về JSON thuần tuý:
           tempo: parsed.tempo || 'medium',
           keywords: Array.isArray(parsed.keywords) ? parsed.keywords : []
         },
-        provider: 'gemini-1.5-flash',
+        provider: activeModel,
         latencyMs,
         tokensUsed: { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
       };
@@ -74,6 +97,11 @@ Chỉ trả về JSON thuần tuý:
     const genres = [];
     let tempo = 'medium';
 
+    if (lower.includes('acoustic') || lower.includes('cafe') || lower.includes('mộc mạc')) {
+      moods.push('acoustic', 'chill');
+      genres.push('Acoustic', 'Indie & Ballad');
+      tempo = 'slow';
+    }
     if (lower.includes('chill') || lower.includes('thư giãn') || lower.includes('ngủ') || lower.includes('đêm')) {
       moods.push('chill');
       tempo = 'slow';

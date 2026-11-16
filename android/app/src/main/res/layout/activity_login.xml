@@ -15,14 +15,27 @@
         android:paddingEnd="@dimen/spacing_24dp"
         android:paddingBottom="@dimen/spacing_32dp">
 
-        <!-- Spotify Logo / Brand Icon -->
+        <!-- Server Configuration Settings Icon -->
+        <ImageButton
+            android:id="@+id/btnServerConfig"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Cài đặt máy chủ"
+            android:padding="10dp"
+            android:src="@drawable/ic_devices"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/text_secondary" />
+
+        <!-- VibeTune Brand Icon -->
         <ImageView
             android:id="@+id/ivLoginLogo"
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:layout_marginTop="@dimen/spacing_16dp"
-            android:contentDescription="Spotify Logo"
-            android:src="@drawable/ic_sparkle_ai"
+            android:contentDescription="VibeTune Logo"
+            android:src="@drawable/ic_brand_mark"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -199,11 +212,31 @@
                 android:id="@+id/tvGoToRegister"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
                 android:text="@string/signup_free"
                 android:textAppearance="@style/TextAppearance.Spotify.Body"
                 android:textColor="@color/spotify_green"
                 android:textStyle="bold" />
         </LinearLayout>
+
+        <!-- Server Connection Status Indicator -->
+        <TextView
+            android:id="@+id/tvServerUrlStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_24dp"
+            android:background="?attr/selectableItemBackground"
+            android:drawableStart="@drawable/ic_devices"
+            android:drawablePadding="6dp"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="Máy chủ: http://192.168.1.9:5000/ (Nhấn để đổi)"
+            android:textAppearance="@style/TextAppearance.Spotify.Caption"
+            android:textColor="@color/text_secondary"
+            app:drawableTint="@color/spotify_green"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layoutRegisterPrompt" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

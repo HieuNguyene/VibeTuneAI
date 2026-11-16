@@ -85,6 +85,47 @@
             android:paddingStart="@dimen/spacing_20dp"
             android:paddingEnd="@dimen/spacing_20dp">
 
+            <!-- 0. Đi tới Radio bài hát (Bài hát tương tự) -->
+            <LinearLayout
+                android:id="@+id/itemMenuSimilarSongs"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_assistant_wave"
+                    app:tint="@color/spotify_green" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Khám phá bài hát tương tự"
+                        android:textAppearance="@style/TextAppearance.Spotify.Body"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Gợi ý giai điệu tương đồng (Song Radio)"
+                        android:textAppearance="@style/TextAppearance.Spotify.Caption"
+                        android:textColor="@color/spotify_green"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+
             <!-- 1. Chia sẻ -->
             <LinearLayout
                 android:id="@+id/itemMenuShare"
@@ -226,46 +267,7 @@
                     android:textSize="15sp" />
             </LinearLayout>
 
-            <!-- 6. Không tính bản nhạc vào hồ sơ gu -->
-            <LinearLayout
-                android:id="@+id/itemMenuExcludeTaste"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/ivExcludeTasteIcon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_tune"
-                    app:tint="@color/text_primary" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/spacing_16dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Không tính bản nhạc vào hồ sơ gu"
-                        android:textAppearance="@style/TextAppearance.Spotify.Body"
-                        android:textSize="15sp" />
-
-                    <TextView
-                        android:id="@+id/tvExcludeTasteState"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Không ảnh hưởng đến gợi ý âm nhạc của bạn"
-                        android:textAppearance="@style/TextAppearance.Spotify.Caption" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- 7. Thêm vào danh sách chờ -->
+            <!-- 6. Thêm vào danh sách chờ -->
             <LinearLayout
                 android:id="@+id/itemMenuAddToQueue"
                 android:layout_width="match_parent"
@@ -340,7 +342,45 @@
                     android:textSize="15sp" />
             </LinearLayout>
 
-            <!-- 10. Hẹn giờ tắt -->
+            <!-- 10. Tốc độ phát nhạc -->
+            <LinearLayout
+                android:id="@+id/itemMenuPlaybackSpeed"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_speed"
+                    app:tint="@color/text_primary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tốc độ phát"
+                        android:textAppearance="@style/TextAppearance.Spotify.Body"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/tvMenuPlaybackSpeedSummary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1.0x (Chuẩn)"
+                        android:textAppearance="@style/TextAppearance.Spotify.Caption" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 11. Hẹn giờ tắt -->
             <LinearLayout
                 android:id="@+id/itemMenuSleepTimer"
                 android:layout_width="match_parent"

@@ -12,7 +12,7 @@
             <shape android:shape="line">
                 <stroke
                     android:width="3dp"
-                    android:color="@color/spotify_green" />
+                    android:color="@color/seekbar_track_progress" />
             </shape>
         </clip>
     </item>

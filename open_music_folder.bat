@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 title Vibe Music - Thu Muc Nhac Cua Ban
 echo ====================================================================
 echo   DANG MO THU MUC CHUA FILE NHAC MP3 VA ANH BIA TRUC TIEP TREN MAY

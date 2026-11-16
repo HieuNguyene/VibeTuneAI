@@ -19,7 +19,7 @@ echo [*] Browser Healthcheck:  http://localhost:5000/api/v1/health
 echo ====================================================================
 echo.
 
-node --watch server.js
+node --watch --watch-path=src --watch-path=server.js server.js
 if %ERRORLEVEL% NEQ 0 (
     echo.
     echo [LOI] Backend dung voi ma loi %ERRORLEVEL%.

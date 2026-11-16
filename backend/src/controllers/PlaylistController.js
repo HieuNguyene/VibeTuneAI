@@ -4,7 +4,9 @@ const ApiResponse = require('../utils/ApiResponse');
 class PlaylistController {
   static async getUserPlaylists(req, res, next) {
     try {
-      const playlists = await PlaylistService.getUserPlaylists(req.user._id);
+      const userId = req.user ? req.user._id : null;
+      const filter = req.query.filter || (req.query.personalOnly === 'true' ? 'personal' : 'all');
+      const playlists = await PlaylistService.getUserPlaylists(userId, filter);
       return ApiResponse.success(res, playlists, 'Playlists retrieved successfully');
     } catch (error) {
       next(error);
@@ -71,6 +73,49 @@ class PlaylistController {
       const { trackOrders } = req.body;
       const result = await PlaylistService.reorderTracks(req.user._id, id, trackOrders);
       return ApiResponse.success(res, result, 'Tracks reordered successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updatePlaylist(req, res, next) {
+    try {
+      const { id } = req.params;
+      const playlist = await PlaylistService.updatePlaylist(req.user._id, id, req.body);
+      return ApiResponse.success(res, playlist, 'Playlist updated successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deletePlaylist(req, res, next) {
+    try {
+      const { id } = req.params;
+      const result = await PlaylistService.deletePlaylist(req.user._id, id);
+      return ApiResponse.success(res, result, 'Playlist deleted successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async toggleFavoritePlaylist(req, res, next) {
+    try {
+      const { id } = req.params;
+      const result = await PlaylistService.toggleFavoritePlaylist(req.user._id, id);
+      return ApiResponse.success(
+        res,
+        result,
+        result.isFavorite ? 'Playlist added to favorites' : 'Playlist removed from favorites'
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getFavoritePlaylists(req, res, next) {
+    try {
+      const playlists = await PlaylistService.getFavoritePlaylists(req.user._id);
+      return ApiResponse.success(res, playlists, 'Favorite playlists retrieved successfully');
     } catch (error) {
       next(error);
     }

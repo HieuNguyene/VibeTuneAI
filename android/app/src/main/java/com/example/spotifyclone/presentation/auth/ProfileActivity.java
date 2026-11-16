@@ -1,6 +1,7 @@
 package com.example.spotifyclone.presentation.auth;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -38,21 +39,15 @@ public class ProfileActivity extends AppCompatActivity {
     private String currentAvatarUrl = "";
 
     private static final String[] PRESET_AVATARS = {
-            "https://api.dicebear.com/7.x/bottts/svg?seed=CyberDJ",
-            "https://api.dicebear.com/7.x/avataaars/svg?seed=AcousticSoul",
-            "https://api.dicebear.com/7.x/bottts/svg?seed=NeonBeat",
-            "https://api.dicebear.com/7.x/avataaars/svg?seed=PopStar",
-            "https://api.dicebear.com/7.x/bottts/svg?seed=RockLegend",
+            "https://api.dicebear.com/7.x/avataaars/png?seed=AcousticSoul",
+            "https://api.dicebear.com/7.x/avataaars/png?seed=MelodyVibe",
+            "https://api.dicebear.com/7.x/avataaars/png?seed=PopStar",
+            "https://api.dicebear.com/7.x/avataaars/png?seed=IndieLover",
+            "https://api.dicebear.com/7.x/avataaars/png?seed=BalladMood",
             "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80",
             "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&q=80"
     };
 
-    private static final String[] AUDIO_QUALITIES = {
-            "Tự động (Khuyên dùng)",
-            "Bình thường (160 kbps)",
-            "Cao (320 kbps)",
-            "Rất cao / Lossless (FLAC)"
-    };
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -62,6 +57,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         binding = ActivityProfileBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        com.example.spotifyclone.util.ThemeManager.applySystemBarsAppearance(this);
 
         // Bù trừ an toàn thanh trạng thái trên đỉnh và thanh cử chỉ điều hướng ở đáy
         com.example.spotifyclone.util.WindowInsetHelper.applySystemBarInsets(binding.getRoot(), true, true);
@@ -76,6 +72,7 @@ public class ProfileActivity extends AppCompatActivity {
             binding.etDisplayName.setText(user.getDisplayName());
             binding.etUsername.setText(user.getUsername());
             binding.etEmail.setText(user.getEmail());
+            binding.tvAudioQualityValue.setText(com.example.spotifyclone.util.AudioQualityHelper.getCurrentLabel(this));
 
             currentAvatarUrl = user.getAvatarUrl();
             loadAvatarPreview(currentAvatarUrl);
@@ -83,7 +80,7 @@ public class ProfileActivity extends AppCompatActivity {
             if ("admin".equalsIgnoreCase(user.getRole())) {
                 binding.tvProfileBadge.setText("QUẢN TRỊ VIÊN • ADMIN");
             } else {
-                binding.tvProfileBadge.setText("SPOTIFY PREMIUM • HOẠT ĐỘNG");
+                binding.tvProfileBadge.setText("VIBETUNE • ĐANG HOẠT ĐỘNG");
             }
         }
     }
@@ -99,8 +96,24 @@ public class ProfileActivity extends AppCompatActivity {
         // Lưu thay đổi thông tin cá nhân
         binding.btnSaveProfile.setOnClickListener(v -> performSaveProfile());
 
+        // Chọn chế độ Sáng / Tối / Hệ thống
+        com.example.spotifyclone.util.ThemeManager.bindModeSelector(
+                this,
+                binding.btnProfileThemeLight,
+                binding.btnProfileThemeDark,
+                binding.btnProfileThemeSystem,
+                binding.tvCurrentThemeLabel,
+                null
+        );
+
         // Chọn chất lượng âm thanh
         binding.btnAudioQualitySelector.setOnClickListener(v -> showAudioQualityDialog());
+
+        // Lịch sử nhạc đã nghe theo ngày
+        binding.layoutListeningHistory.setOnClickListener(v -> {
+            Intent intent = new Intent(this, com.example.spotifyclone.presentation.history.ListeningHistoryActivity.class);
+            startActivity(intent);
+        });
 
         // Đổi mật khẩu
         binding.btnChangePassword.setOnClickListener(v -> performChangePassword());
@@ -132,7 +145,7 @@ public class ProfileActivity extends AppCompatActivity {
                         showPresetAvatarsDialog();
                     } else if (which == 1) {
                         String randomSeed = UUID.randomUUID().toString().substring(0, 8);
-                        currentAvatarUrl = "https://api.dicebear.com/7.x/bottts/svg?seed=" + randomSeed;
+                        currentAvatarUrl = "https://api.dicebear.com/7.x/avataaars/png?seed=" + randomSeed;
                         loadAvatarPreview(currentAvatarUrl);
                         Toast.makeText(this, "Đã tạo Avatar mới! Hãy bấm 'Lưu thay đổi' để áp dụng.", Toast.LENGTH_SHORT).show();
                     } else if (which == 2) {
@@ -145,13 +158,13 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void showPresetAvatarsDialog() {
         String[] presetNames = {
-                "Cyber DJ (Robot Neon)",
-                "Acoustic Soul (Chill)",
-                "Neon Beat (Tím mộng mơ)",
-                "Pop Star (Năng động)",
-                "Rock Legend (Cá tính)",
-                "Nghệ sĩ trẻ năng động",
-                "Nhiếp ảnh gia sành điệu"
+                "Acoustic Soul (Thư giãn)",
+                "Melody Vibe (Êm dịu)",
+                "Pop Star (Sôi động)",
+                "Indie Lover (Tối giản)",
+                "Ballad Mood (Sâu lắng)",
+                "Chân dung hiện đại 1",
+                "Chân dung hiện đại 2"
         };
 
         new MaterialAlertDialogBuilder(this, com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog)
@@ -170,7 +183,7 @@ public class ProfileActivity extends AppCompatActivity {
     private void showCustomUrlDialog() {
         EditText input = new EditText(this);
         input.setHint("https://example.com/my-photo.jpg");
-        input.setTextColor(getColor(R.color.white));
+        input.setTextColor(getColor(R.color.text_primary));
         input.setPadding(48, 32, 48, 32);
 
         new MaterialAlertDialogBuilder(this, com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog)
@@ -189,24 +202,7 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void showAudioQualityDialog() {
-        int currentIndex = 2; // Default High (320 kbps)
-        String currentValue = binding.tvAudioQualityValue.getText().toString();
-        for (int i = 0; i < AUDIO_QUALITIES.length; i++) {
-            if (AUDIO_QUALITIES[i].equalsIgnoreCase(currentValue)) {
-                currentIndex = i;
-                break;
-            }
-        }
-
-        new MaterialAlertDialogBuilder(this, com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog)
-                .setTitle(R.string.audio_quality)
-                .setSingleChoiceItems(AUDIO_QUALITIES, currentIndex, (dialog, which) -> {
-                    binding.tvAudioQualityValue.setText(AUDIO_QUALITIES[which]);
-                    Toast.makeText(this, "Đã chọn chất lượng: " + AUDIO_QUALITIES[which], Toast.LENGTH_SHORT).show();
-                    dialog.dismiss();
-                })
-                .setNegativeButton(R.string.dialog_cancel, null)
-                .show();
+        com.example.spotifyclone.util.AudioQualityHelper.showQualityPickerDialog(this, binding.tvAudioQualityValue);
     }
 
     private void performSaveProfile() {

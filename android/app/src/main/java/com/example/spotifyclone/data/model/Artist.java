@@ -24,6 +24,12 @@ public class Artist {
     @SerializedName("isVerified")
     private boolean isVerified;
 
+    @SerializedName("isFollowed")
+    private boolean isFollowed;
+
+    @SerializedName("songsCount")
+    private int songsCount;
+
     public Artist() {}
 
     public Artist(String id, String name) {
@@ -40,5 +46,10 @@ public class Artist {
     public String getAvatarUrl() { return avatarUrl; }
     public String getBio() { return bio; }
     public long getFollowersCount() { return followersCount; }
+    public void setFollowersCount(long followersCount) { this.followersCount = followersCount; }
     public boolean isVerified() { return isVerified; }
+    public boolean isFollowed() { return isFollowed; }
+    public void setFollowed(boolean followed) { isFollowed = followed; }
+    public int getSongsCount() { return songsCount; }
+    public void setSongsCount(int songsCount) { this.songsCount = songsCount; }
 }

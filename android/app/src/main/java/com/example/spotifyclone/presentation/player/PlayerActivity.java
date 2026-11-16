@@ -1,9 +1,14 @@
 package com.example.spotifyclone.presentation.player;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.provider.Settings;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.Toast;
@@ -12,38 +17,43 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.palette.graphics.Palette;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSmoothScroller;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.example.spotifyclone.R;
+import com.example.spotifyclone.data.model.Album;
 import com.example.spotifyclone.data.model.ApiResponse;
+import com.example.spotifyclone.data.model.Artist;
+import com.example.spotifyclone.data.model.ArtistDetailData;
+import com.example.spotifyclone.data.model.Playlist;
 import com.example.spotifyclone.data.model.Song;
 import com.example.spotifyclone.data.model.ToggleFavoriteData;
 import com.example.spotifyclone.data.remote.ApiClient;
-import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
-import androidx.core.widget.NestedScrollView;
-import com.example.spotifyclone.data.model.Artist;
-import com.example.spotifyclone.data.model.Playlist;
 import com.example.spotifyclone.presentation.artist.ArtistDetailActivity;
+import com.google.android.material.button.MaterialButton;
 import com.example.spotifyclone.databinding.ActivityPlayerBinding;
 import com.example.spotifyclone.databinding.LayoutBottomSheetAddToPlaylistBinding;
 import com.example.spotifyclone.databinding.LayoutBottomSheetAlbumInfoBinding;
 import com.example.spotifyclone.databinding.LayoutBottomSheetArtistInfoBinding;
 import com.example.spotifyclone.databinding.LayoutBottomSheetDeviceConnectBinding;
+import com.example.spotifyclone.databinding.LayoutBottomSheetMoodFlowArcBinding;
+import com.example.spotifyclone.databinding.LayoutBottomSheetPlaybackSpeedBinding;
 import com.example.spotifyclone.databinding.LayoutBottomSheetPlayerMenuBinding;
 import com.example.spotifyclone.databinding.LayoutBottomSheetQueueBinding;
+import com.example.spotifyclone.databinding.LayoutBottomSheetSimilarSongsBinding;
 import com.example.spotifyclone.databinding.LayoutBottomSheetSleepTimerBinding;
 import com.example.spotifyclone.player.MusicPlayerManager;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import com.example.spotifyclone.data.model.LyricLine;
 import com.example.spotifyclone.player.LrcParser;
+import java.util.Locale;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,10 +71,31 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
     private boolean isUserSeeking = false;
 
     // Synced Lyrics Engine (LRC & Click-to-Seek)
-    private LyricsAdapter lyricsOverlayAdapter;
     private LyricsAdapter lyricsScrollAdapter;
     private List<LyricLine> currentLyricLines = new ArrayList<>();
     private int currentLyricIndex = -1;
+
+    // Bộ định thời 60ms cho Cơ chế Cuộn Mượt & Đổi Màu (Smooth Scroll & Dynamic Highlight)
+    private static final long LYRICS_TICK_INTERVAL_MS = 60L;
+    private static final long LYRIC_SYNC_LEAD_MS = 180L; // Bù trừ trễ âm thanh & phản xạ thị giác người nghe
+    private final Handler lyricsTickerHandler = new Handler(Looper.getMainLooper());
+    private boolean isLyricsTickerRunning = false;
+    private boolean isUserTouchingLyrics = false;
+    private final Handler lyricsTouchHandler = new Handler(Looper.getMainLooper());
+    private final Runnable resumeAutoScrollRunnable = () -> isUserTouchingLyrics = false;
+
+    private final Runnable lyricsTickerRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (MusicPlayerManager.getInstance().isPrepared() && MusicPlayerManager.getInstance().isPlaying()) {
+                int currentMs = MusicPlayerManager.getInstance().getCurrentPosition();
+                syncLyricsProgress(currentMs);
+            }
+            if (isLyricsTickerRunning) {
+                lyricsTickerHandler.postDelayed(this, LYRICS_TICK_INTERVAL_MS);
+            }
+        }
+    };
 
     // BottomSheet Dialogs
     private BottomSheetDialog queueBottomSheetDialog;
@@ -75,6 +106,7 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
         super.onCreate(savedInstanceState);
         binding = ActivityPlayerBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        com.example.spotifyclone.util.ThemeManager.applySystemBarsAppearance(this);
 
         // Bù trừ an toàn thanh trạng thái trên đỉnh và thanh cử chỉ điều hướng ở đáy
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.playerRootLayout, (v, insets) -> {
@@ -119,6 +151,15 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
     protected void onResume() {
         super.onResume();
         binding.scrollPlayerContent.post(() -> binding.scrollPlayerContent.scrollTo(0, 0));
+        if (MusicPlayerManager.getInstance().isPrepared() && MusicPlayerManager.getInstance().isPlaying()) {
+            startLyricsTicker();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopLyricsTicker();
     }
 
     private void extractIntentDataAndPlay() {
@@ -166,6 +207,12 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
         updateShuffleButton(MusicPlayerManager.getInstance().isShuffle());
         updateRepeatButton(MusicPlayerManager.getInstance().getRepeatMode());
         updatePlayPauseButton(MusicPlayerManager.getInstance().isPlaying());
+        updatePlaybackSpeedUI(MusicPlayerManager.getInstance().getPlaybackSpeed());
+        updateMoodFlowUI(
+                MusicPlayerManager.getInstance().isMoodFlowMode(),
+                MusicPlayerManager.getInstance().getCurrentArc(),
+                MusicPlayerManager.getInstance().getCurrentReason()
+        );
         if (MusicPlayerManager.getInstance().isPrepared()) {
             int currentMs = MusicPlayerManager.getInstance().getCurrentPosition();
             int totalMs = MusicPlayerManager.getInstance().getDuration();
@@ -180,7 +227,7 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
 
     private void loadCoverAndPalette(String coverUrl) {
         if (coverUrl == null || coverUrl.isEmpty()) {
-            applyDynamicGradient(0xFF253342);
+            applyDynamicGradient(0xFF1A365D);
             return;
         }
 
@@ -192,10 +239,13 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
                 .into(new CustomTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                        if (isFinishing() || isDestroyed() || binding == null) {
+                            return;
+                        }
                         binding.ivPlayerAlbumArt.setImageBitmap(resource);
                         Palette.from(resource).generate(palette -> {
-                            if (palette != null) {
-                                int dominantColor = palette.getDominantColor(0xFF282828);
+                            if (palette != null && !isFinishing() && !isDestroyed() && binding != null) {
+                                int dominantColor = palette.getDominantColor(getColor(R.color.spotify_elevated));
                                 applyDynamicGradient(dominantColor);
                             }
                         });
@@ -208,9 +258,22 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
 
     private void applyDynamicGradient(int topColor) {
         int bottomColor = getColor(R.color.spotify_black);
+        boolean isNight = com.example.spotifyclone.util.ThemeManager.isNightMode(this);
+        double lum = androidx.core.graphics.ColorUtils.calculateLuminance(topColor);
+        int resolvedTop;
+        int midColor;
+        if (isNight) {
+            float topBlend = lum > 0.25 ? 0.52f : 0.12f;
+            resolvedTop = androidx.core.graphics.ColorUtils.blendARGB(topColor, bottomColor, topBlend);
+            midColor = androidx.core.graphics.ColorUtils.blendARGB(topColor, bottomColor, 0.76f);
+        } else {
+            float topBlend = lum < 0.08 ? 0.68f : 0.56f;
+            resolvedTop = androidx.core.graphics.ColorUtils.blendARGB(topColor, bottomColor, topBlend);
+            midColor = androidx.core.graphics.ColorUtils.blendARGB(topColor, bottomColor, 0.88f);
+        }
         GradientDrawable gradient = new GradientDrawable(
                 GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{topColor, 0xFF181818, bottomColor}
+                new int[]{resolvedTop, midColor, bottomColor}
         );
         gradient.setCornerRadius(0f);
         binding.vGradientOverlay.setBackground(gradient);
@@ -234,6 +297,8 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
             public void onStopTrackingTouch(SeekBar seekBar) {
                 isUserSeeking = false;
                 MusicPlayerManager.getInstance().seekTo(seekBar.getProgress());
+                isUserTouchingLyrics = false;
+                syncLyricsProgress(seekBar.getProgress());
             }
         });
     }
@@ -246,6 +311,10 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
         binding.tvPlayerArtistName.setOnClickListener(v -> navigateToArtistDetail());
 
         // 2. Play / Pause Toggle
+        com.example.spotifyclone.ui.liquid.LiquidDropletHelper.attachDropletSpring(
+                binding.btnPlayPause,
+                binding.btnMoodFlowArcSelector
+        );
         binding.btnPlayPause.setOnClickListener(v -> {
             MusicPlayerManager.getInstance().togglePlayPause();
         });
@@ -260,9 +329,35 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
             MusicPlayerManager.getInstance().playPrevious();
         });
 
+        // 4b. Rewind -10s / Forward +30s
+        binding.btnRewind10s.setOnClickListener(v -> {
+            MusicPlayerManager.getInstance().seekBy(-10_000);
+        });
+
+        binding.btnForward30s.setOnClickListener(v -> {
+            MusicPlayerManager.getInstance().seekBy(30_000);
+        });
+
+        // 4c. Playback Speed Pill (0.5x..2.0x, default 1.0x)
+        updatePlaybackSpeedUI(MusicPlayerManager.getInstance().getPlaybackSpeed());
+        binding.btnPlaybackSpeed.setOnClickListener(v -> {
+            showPlaybackSpeedBottomSheet();
+        });
+
         // 5. Favorite Toggle with API Call
         binding.btnPlayerFavorite.setOnClickListener(v -> {
             toggleFavorite();
+        });
+
+        // 5b. Dislike Track Button
+        binding.btnPlayerDislike.setOnClickListener(v -> {
+            MusicPlayerManager.getInstance().dislikeCurrentTrack();
+            Toast.makeText(this, "Đã bỏ qua bài hát này", Toast.LENGTH_SHORT).show();
+        });
+
+        // 5c. Mood Flow Arc Selector
+        binding.btnMoodFlowArcSelector.setOnClickListener(v -> {
+            showMoodFlowArcBottomSheet();
         });
 
         // 6. Shuffle Toggle
@@ -301,71 +396,27 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
         // 10. Options Menu BottomSheet
         binding.btnPlayerMenu.setOnClickListener(v -> showPlayerMenuBottomSheet());
 
-        // 11. Close Lyrics Card Overlay
-        binding.btnCloseLyrics.setOnClickListener(v -> {
-            binding.cardLyricsContainer.setVisibility(View.GONE);
-            binding.ivPlayerAlbumArt.setVisibility(View.VISIBLE);
-        });
-
-        // 12. Lyrics Peek Bar (Tự động cuộn xuống khung lời bài hát)
+        // 11. Lyrics Peek Bar (Tự động cuộn xuống khung lời bài hát ở phía dưới)
         binding.layoutLyricsPeek.setOnClickListener(v -> {
-            binding.scrollPlayerContent.smoothScrollTo(0, binding.cardLyricsScrollSection.getTop());
+            showBottomLyrics();
         });
 
-        // 13. Nút cuộn lên đầu từ phần Lời bài hát
+        // 12. Nút cuộn lên đầu từ phần Lời bài hát
         binding.btnScrollBackToTop.setOnClickListener(v -> {
             binding.scrollPlayerContent.smoothScrollTo(0, 0);
         });
 
-        // 14. Thiết lập nhận diện cử chỉ kéo xuống / vuốt xuống tự động bật lời bài hát
+        // 13. Thiết lập tương tác phần Lời bài hát phía dưới
         setupLyricsGestures();
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     private void setupLyricsGestures() {
-        // 1. Chạm trực tiếp vào ảnh bìa hoặc thẻ lời bài hát để bật/đổi chế độ
-        binding.ivPlayerAlbumArt.setOnClickListener(v -> autoEnableLyrics());
-        binding.cardLyricsContainer.setOnClickListener(v -> autoEnableLyrics());
-
-        // 2. Chạm vào khung xem trước lời bài hát bên dưới để cuộn mượt mà xuống xem trọn vẹn
+        // 1. Chạm vào khung lời bài hát bên dưới để cuộn mượt mà xem trọn vẹn
         binding.cardLyricsScrollSection.setOnClickListener(v -> {
             binding.scrollPlayerContent.smoothScrollTo(0, binding.cardLyricsScrollSection.getTop());
         });
 
-        // 3. Nhận diện thao tác kéo xuống (Pull/Swipe Down) trên toàn bộ nội dung trình phát nhạc
-        final float[] touchStartY = {0f};
-        final float[] touchStartX = {0f};
-        final boolean[] hasTriggeredPull = {false};
-
-        binding.scrollPlayerContent.setOnTouchListener((v, event) -> {
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                    touchStartY[0] = event.getY();
-                    touchStartX[0] = event.getX();
-                    hasTriggeredPull[0] = false;
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    float dyMove = event.getY() - touchStartY[0];
-                    float dxMove = event.getX() - touchStartX[0];
-                    if (!hasTriggeredPull[0] && binding.scrollPlayerContent.getScrollY() <= 15 && dyMove > 90 && Math.abs(dyMove) > Math.abs(dxMove)) {
-                        hasTriggeredPull[0] = true;
-                        autoEnableLyrics();
-                    }
-                    break;
-                case MotionEvent.ACTION_UP:
-                    float deltaY = event.getY() - touchStartY[0];
-                    float deltaX = event.getX() - touchStartX[0];
-                    // Khi đang ở đầu trình phát nhạc (scrollY <= 15) và người dùng kéo mạnh xuống (kéo xuống >= 80px)
-                    if (!hasTriggeredPull[0] && binding.scrollPlayerContent.getScrollY() <= 15 && deltaY > 80 && Math.abs(deltaY) > Math.abs(deltaX)) {
-                        hasTriggeredPull[0] = true;
-                        autoEnableLyrics();
-                    }
-                    break;
-            }
-            return false; // Trả về false để NestedScrollView vẫn cuộn trang bình thường
-        });
-
-        // 4. Lắng nghe sự kiện cuộn trang (khi người dùng cuộn xuống dưới, tự động cập nhật lời bài hát)
+        // 2. Lắng nghe sự kiện cuộn trang (khi người dùng cuộn xuống dưới, tự động nạp lời bài hát)
         binding.scrollPlayerContent.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             if (scrollY > 50) {
                 Song song = MusicPlayerManager.getInstance().getCurrentSong();
@@ -374,27 +425,41 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
         });
     }
 
-    private void autoEnableLyrics() {
+    private void showBottomLyrics() {
         Song song = MusicPlayerManager.getInstance().getCurrentSong();
         updateLyrics(song);
-        if (binding.cardLyricsContainer.getVisibility() != View.VISIBLE) {
-            binding.cardLyricsContainer.setVisibility(View.VISIBLE);
-            binding.ivPlayerAlbumArt.setVisibility(View.INVISIBLE);
-            Toast.makeText(this, "✨ Đã tự động bật lời bài hát", Toast.LENGTH_SHORT).show();
-        } else {
-            // Nếu đã mở thẻ trên ảnh bìa rồi mà người dùng tiếp tục thao tác, cuộn xuống khung chi tiết
+        binding.scrollPlayerContent.post(() -> {
             binding.scrollPlayerContent.smoothScrollTo(0, binding.cardLyricsScrollSection.getTop());
-        }
+        });
     }
 
     private void setupLyricsRecyclerViews() {
-        lyricsOverlayAdapter = new LyricsAdapter(null);
-        binding.rvLyricsOverlay.setLayoutManager(new LinearLayoutManager(this));
-        binding.rvLyricsOverlay.setAdapter(lyricsOverlayAdapter);
-
-        lyricsScrollAdapter = new LyricsAdapter(null);
-        binding.rvLyricsScrollSection.setLayoutManager(new LinearLayoutManager(this));
+        lyricsScrollAdapter = new LyricsAdapter((line, position) -> {
+            if (line != null && line.getTimestampMs() >= 0) {
+                MusicPlayerManager.getInstance().seekTo((int) line.getTimestampMs());
+                isUserTouchingLyrics = false;
+                syncLyricsProgress((int) line.getTimestampMs());
+                smoothScrollLyricToCenter(position);
+            }
+        });
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        binding.rvLyricsScrollSection.setLayoutManager(layoutManager);
         binding.rvLyricsScrollSection.setAdapter(lyricsScrollAdapter);
+
+        // Lắng nghe thao tác vuốt / cuộn của người dùng để tạm hoãn cuộn tự động
+        binding.rvLyricsScrollSection.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    isUserTouchingLyrics = true;
+                    lyricsTouchHandler.removeCallbacks(resumeAutoScrollRunnable);
+                } else if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    lyricsTouchHandler.removeCallbacks(resumeAutoScrollRunnable);
+                    lyricsTouchHandler.postDelayed(resumeAutoScrollRunnable, 2500L);
+                }
+            }
+        });
     }
 
     private String getRichLyrics(Song song) {
@@ -402,7 +467,7 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
             return song.getLyrics().trim();
         }
 
-        String title = (song != null && song.getTitle() != null) ? song.getTitle().toLowerCase() : "";
+        String title = (song != null && song.getTitle() != null) ? song.getTitle().toLowerCase(Locale.ROOT) : "";
 
         if (title.contains("vùng an toàn") || title.contains("vung an toan")) {
             return "[00:02.00]Mm-hm, mm-hm\n" +
@@ -471,63 +536,129 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
                    "[03:51.55]Everything’s gon’ be okay)\n" +
                    "[04:20.57]So, kể cho em nghe đi, từ đầu là như thế nào?";
         } else if (title.contains("exit sign")) {
-            return "[00:00.00]♪ Exit Sign - HIEUTHUHAI ♪\n" +
-                   "[00:05.00]I see the exit sign...\n" +
-                   "[00:09.50]Lối thoát cho cuộc tình này đã mở ra\n" +
-                   "[00:14.00]Không còn những giận hờn vu vơ\n" +
-                   "[00:18.50]Không còn những đêm dài trăn trở\n" +
-                   "[00:24.00]Bước ra khỏi ánh đèn mờ ảo\n" +
-                   "[00:29.00]Tìm lại nụ cười vốn thuộc về anh\n" +
-                   "[00:34.00]Đoạn đường phía trước thênh thang\n" +
-                   "[00:40.00]Tạm biệt người từng là tất cả\n" +
-                   "[00:48.00]I see the exit sign...\n" +
-                   "[00:56.00]Bước đi không ngoảnh lại phía sau\n" +
-                   "[01:08.00]Tìm lại chính mình của những ngày xưa.";
+            return "[00:23.05](Hey, Kewtiie)\n" +
+                   "[00:24.64]Anh không nhớ nổi lần cuối cùng anh nhìn vào mắt em đó là từ bao giờ\n" +
+                   "[00:27.55]Em từng trách anh chỉ ôm ước mơ, còn không sợ mất em thì làm sao chờ?\n" +
+                   "[00:30.77]Lúc đó cả hai đứa đều không thể nào nhún nhường\n" +
+                   "[00:34.22]Cứ tưởng tình yêu là một chuyến xe buýt, có thể đổi chuyến ở trạm dừng chân\n" +
+                   "[00:39.50]Nhưng mà không em ơi...";
         } else if (title.contains("tìm em") || title.contains("tim em")) {
-            return "[00:00.00]♪ Tìm Em - Hưng Lê ♪\n" +
-                   "[00:05.00]Đi tìm một người trong những giấc mơ...\n" +
-                   "[00:11.00]Tìm lại ký ức một thời đã xa\n" +
-                   "[00:17.00]Gió đông lạnh buốt qua từng ngõ nhỏ\n" +
-                   "[00:23.00]Bóng hình em nay đã khuất xa rồi\n" +
-                   "[00:30.00]Có những lời chưa kịp nói\n" +
-                   "[00:36.00]Đã vội tan vào trong hư vô\n" +
-                   "[00:45.00]Chỉ còn nỗi nhớ đọng lại trong anh\n" +
-                   "[00:55.00]Mãi mãi không phai mờ theo thời gian.";
+            return "[00:23.14]Một ngày vắng yêu thương nỗi nhớ quay cuồng trong đêm\n" +
+                   "[00:28.18]Nhiều ngày vắng hỡi em nỗi nhớ ngày càng dâng lên\n" +
+                   "[00:34.25]Tóc rối khi không thấy người, đẫm nát lang thang cuối trời\n" +
+                   "[00:40.08]Ngày tàn anh chơi vơi với cuộc đời...";
         } else if (title.contains("chẳng thể tìm") || title.contains("chang the tim")) {
-            return "[00:00.00]♪ Chẳng Thể Tìm Được Em ♪\n" +
-                   "[00:06.00]Chẳng thể tìm được em giữa những thênh thang...\n" +
-                   "[00:12.00]Dòng người vội vã lướt qua nhanh\n" +
-                   "[00:18.00]Tìm lại ánh mắt nụ cười năm ấy\n" +
-                   "[00:24.00]Chỉ còn nỗi nhớ đọng lại trong anh\n" +
-                   "[00:32.00]Hoàng hôn buông tím cả góc trời\n" +
-                   "[00:40.00]Bao nhiêu kỷ niệm bỗng vỡ đôi...";
+            return "[00:19.80]Anh dừng chân, ngước nhìn trời cao vẫn muôn ánh sao\n" +
+                   "[00:27.89]Để buồn đau, phủ lên bờ vai hao gầy\n" +
+                   "[00:35.72]Ngày mà ta rời xa, quay lưng về nhau\n" +
+                   "[00:41.18]Liệu đã có ai ngoảnh lại...";
         } else {
-            return "[00:00.00]♪ Giai điệu bắt đầu vang lên ♪\n" +
-                   "[00:06.00]Khi cơn mưa vừa rơi qua lối nhỏ\n" +
-                   "[00:12.00]Anh bồi hồi nhớ lại tháng ngày qua\n" +
-                   "[00:18.00]Từng giai điệu ngân vang trong lòng ta\n" +
-                   "[00:24.00]Ấm áp từng giây phút dịu êm\n" +
-                   "[00:32.00]Hòa mình vào không gian âm nhạc\n" +
-                   "[00:40.00]Xua tan đi mọi âu lo mệt nhoài\n" +
-                   "[00:50.00]Cảm nhận từng cung bậc cảm xúc thăng hoa.";
+            return "[00:15.00]♪ Giai điệu mở đầu vang lên êm dịu ♪\n" +
+                   "[00:22.00]Khi cơn mưa vừa rơi qua lối nhỏ\n" +
+                   "[00:29.00]Anh bồi hồi nhớ lại tháng ngày qua\n" +
+                   "[00:36.00]Từng giai điệu ngân vang trong lòng ta\n" +
+                   "[00:44.00]Ấm áp từng giây phút dịu êm\n" +
+                   "[00:52.00]Hòa mình vào không gian âm nhạc\n" +
+                   "[01:00.00]Xua tan đi mọi âu lo mệt nhoài\n" +
+                   "[01:10.00]Cảm nhận từng cung bậc cảm xúc thăng hoa.";
         }
     }
 
     private void updateLyrics(Song song) {
         String rawLyrics = getRichLyrics(song);
-        currentLyricLines = LrcParser.parse(rawLyrics);
-        currentLyricIndex = -1;
+        long durationMs = (song != null && song.getDuration() > 0) ? song.getDuration() * 1000L : 0L;
+        currentLyricLines = LrcParser.parse(rawLyrics, durationMs);
+        currentLyricIndex = -2; // Reset trạng thái để nhận diện đoạn intro (-1) một cách chuẩn xác
 
-        if (lyricsOverlayAdapter != null) {
-            lyricsOverlayAdapter.setLyricLines(currentLyricLines);
-        }
         if (lyricsScrollAdapter != null) {
             lyricsScrollAdapter.setLyricLines(currentLyricLines);
+            scrollLyricsToTop();
         }
+        syncLyricsProgress(MusicPlayerManager.getInstance().getCurrentPosition());
     }
 
     private void syncLyricsProgress(int currentMs) {
-        // Đã tắt tính năng tự động đồng bộ / cuộn lời theo nhạc theo yêu cầu người dùng
+        if (currentLyricLines == null || currentLyricLines.isEmpty() || lyricsScrollAdapter == null) {
+            return;
+        }
+        // Bù trừ độ trễ giải mã âm thanh và phản xạ thính giác/thị giác (+180ms)
+        long lookupMs = Math.max(0, currentMs + LYRIC_SYNC_LEAD_MS);
+        int activeIndex = LrcParser.findActiveLineIndex(currentLyricLines, lookupMs);
+        if (activeIndex != currentLyricIndex) {
+            currentLyricIndex = activeIndex;
+            boolean changed = lyricsScrollAdapter.setActivePosition(activeIndex);
+            if (binding != null && binding.tvLyricsStatusBadge != null) {
+                binding.tvLyricsStatusBadge.setVisibility(activeIndex < 0 ? View.VISIBLE : View.GONE);
+            }
+            if (changed && !isUserTouchingLyrics) {
+                if (activeIndex >= 0) {
+                    smoothScrollLyricToCenter(activeIndex);
+                } else {
+                    // Đang ở đoạn nhạc dạo đầu (intro) chưa có lời: giữ yên danh sách ở đầu trang
+                    scrollLyricsToTop();
+                }
+            }
+        }
+    }
+
+    private void scrollLyricsToTop() {
+        if (binding == null || binding.rvLyricsScrollSection == null) return;
+        RecyclerView.LayoutManager layoutManager = binding.rvLyricsScrollSection.getLayoutManager();
+        if (layoutManager instanceof LinearLayoutManager) {
+            ((LinearLayoutManager) layoutManager).scrollToPositionWithOffset(0, 0);
+        }
+    }
+
+    private void smoothScrollLyricToCenter(int position) {
+        if (position < 0 || lyricsScrollAdapter == null || position >= lyricsScrollAdapter.getItemCount()) {
+            return;
+        }
+        RecyclerView.LayoutManager layoutManager = binding.rvLyricsScrollSection.getLayoutManager();
+        if (!(layoutManager instanceof LinearLayoutManager)) return;
+
+        LinearSmoothScroller scroller = new LinearSmoothScroller(this) {
+            @Override
+            public int calculateDtToFit(int viewStart, int viewEnd, int boxStart, int boxEnd, int snapPreference) {
+                // Căn chính xác tâm của dòng lời bài hát (view) trùng với tâm của khung nhìn RecyclerView (box)
+                int boxMid = boxStart + (boxEnd - boxStart) / 2;
+                int viewMid = viewStart + (viewEnd - viewStart) / 2;
+                return boxMid - viewMid;
+            }
+
+            @Override
+            protected float calculateSpeedPerPixel(DisplayMetrics displayMetrics) {
+                // Tốc độ lướt mượt mà, uyển chuyển (~35ms / inch)
+                return 35f / (displayMetrics != null ? displayMetrics.densityDpi : DisplayMetrics.DENSITY_DEFAULT);
+            }
+
+            @Override
+            protected int calculateTimeForScrolling(int dx) {
+                // Giới hạn thời gian cuộn tối đa 350ms để bắt kịp nhịp bài hát nhanh
+                return Math.min(350, super.calculateTimeForScrolling(dx));
+            }
+
+            @Override
+            protected void onTargetFound(View targetView, RecyclerView.State state, Action action) {
+                int dy = calculateDyToMakeVisible(targetView, getVerticalSnapPreference());
+                if (dy == 0) return;
+                int time = Math.max(250, Math.min(calculateTimeForDeceleration(Math.abs(dy)), 400));
+                action.update(0, -dy, time, new android.view.animation.DecelerateInterpolator(1.6f));
+            }
+        };
+        scroller.setTargetPosition(position);
+        layoutManager.startSmoothScroll(scroller);
+    }
+
+    private void startLyricsTicker() {
+        if (isLyricsTickerRunning) return;
+        isLyricsTickerRunning = true;
+        lyricsTickerHandler.removeCallbacks(lyricsTickerRunnable);
+        lyricsTickerHandler.post(lyricsTickerRunnable);
+    }
+
+    private void stopLyricsTicker() {
+        isLyricsTickerRunning = false;
+        lyricsTickerHandler.removeCallbacks(lyricsTickerRunnable);
     }
 
     private void updateShuffleButton(boolean isShuffle) {
@@ -581,8 +712,12 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
         dialog.setContentView(deviceBinding.getRoot());
 
         deviceBinding.btnConnectBluetooth.setOnClickListener(v -> {
-            Toast.makeText(this, "Bật Bluetooth trên điện thoại để tự động kết nối", Toast.LENGTH_LONG).show();
             dialog.dismiss();
+            try {
+                startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS));
+            } catch (Exception e) {
+                Toast.makeText(this, "Không thể mở Cài đặt Bluetooth trên thiết bị này", Toast.LENGTH_SHORT).show();
+            }
         });
 
         dialog.show();
@@ -600,7 +735,11 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
         String songId = MusicPlayerManager.getInstance().getCurrentSongId();
 
         menuBinding.tvMenuSongTitle.setText(title != null && !title.isEmpty() ? title : "Đang phát");
-        menuBinding.tvMenuArtistName.setText(artist != null && !artist.isEmpty() ? artist : "Spotify");
+        String displayArtist = artist != null && !artist.isEmpty() ? artist : "Nghệ sĩ VibeTune";
+        if (currentSong != null && currentSong.getComposer() != null && !currentSong.getComposer().isEmpty() && !currentSong.getComposer().equalsIgnoreCase(artist)) {
+            displayArtist += " • Sáng tác: " + currentSong.getComposer();
+        }
+        menuBinding.tvMenuArtistName.setText(displayArtist);
 
         Glide.with(this)
                 .load(coverUrl)
@@ -608,30 +747,32 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
                 .error(R.drawable.bg_card_rounded)
                 .into(menuBinding.ivMenuSongArt);
 
+        // 0. Khám phá bài hát tương tự (Song Radio)
+        menuBinding.itemMenuSimilarSongs.setOnClickListener(v -> {
+            menuDialog.dismiss();
+            showSimilarSongsBottomSheet(songId, title);
+        });
+
         // 1. Chia sẻ
         menuBinding.itemMenuShare.setOnClickListener(v -> {
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             shareIntent.setType("text/plain");
-            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Nghe nhạc trên Spotify");
-            shareIntent.putExtra(Intent.EXTRA_TEXT, "Đang nghe bài hát \"" + title + "\" của " + artist + " trên Spotify Clone! 🎵");
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Nghe nhạc trên VibeTune");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, "Đang nghe bài hát \"" + title + "\" của " + artist + ".");
             startActivity(Intent.createChooser(shareIntent, "Chia sẻ bài hát qua"));
             menuDialog.dismiss();
         });
 
-        // 2. Lời bài hát bật hoặc tắt
-        boolean isLyricsShowing = binding.cardLyricsContainer.getVisibility() == View.VISIBLE
-                || binding.scrollPlayerContent.getScrollY() > 100;
-        menuBinding.tvLyricsToggleState.setText(isLyricsShowing ? "Đang bật • Nhấn để tắt" : "Đang tắt • Nhấn để bật");
+        // 2. Lời bài hát ở phía dưới
+        boolean isLyricsShowing = binding.scrollPlayerContent.getScrollY() > 100;
+        menuBinding.tvLyricsToggleState.setText(isLyricsShowing ? "Đang xem • Nhấn để lên đầu" : "Xem lời bài hát ở phía dưới");
         menuBinding.itemMenuLyrics.setOnClickListener(v -> {
-            if (binding.cardLyricsContainer.getVisibility() == View.VISIBLE || binding.scrollPlayerContent.getScrollY() > 100) {
-                binding.cardLyricsContainer.setVisibility(View.GONE);
-                binding.ivPlayerAlbumArt.setVisibility(View.VISIBLE);
+            if (binding.scrollPlayerContent.getScrollY() > 100) {
                 binding.scrollPlayerContent.smoothScrollTo(0, 0);
-                Toast.makeText(this, "Đã tắt lời bài hát", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Đã cuộn lên đầu", Toast.LENGTH_SHORT).show();
             } else {
-                updateLyrics(currentSong);
-                binding.scrollPlayerContent.smoothScrollTo(0, binding.cardLyricsScrollSection.getTop());
-                Toast.makeText(this, "Đã bật lời bài hát", Toast.LENGTH_SHORT).show();
+                showBottomLyrics();
+                Toast.makeText(this, "Đã mở lời bài hát ở phía dưới", Toast.LENGTH_SHORT).show();
             }
             menuDialog.dismiss();
         });
@@ -664,30 +805,7 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
             menuDialog.dismiss();
         });
 
-        // 6. Không tính bản nhạc vào hồ sơ gu
-        SharedPreferences sp = getSharedPreferences("taste_profile_prefs", MODE_PRIVATE);
-        boolean isExcluded = sp.getBoolean("exclude_" + songId, false);
-        if (isExcluded) {
-            menuBinding.ivExcludeTasteIcon.setColorFilter(getColor(R.color.spotify_green));
-            menuBinding.tvExcludeTasteState.setText("Đang loại trừ khỏi gợi ý gu âm nhạc");
-            menuBinding.tvExcludeTasteState.setTextColor(getColor(R.color.spotify_green));
-        } else {
-            menuBinding.ivExcludeTasteIcon.setColorFilter(getColor(R.color.text_primary));
-            menuBinding.tvExcludeTasteState.setText("Không ảnh hưởng đến gợi ý âm nhạc của bạn");
-            menuBinding.tvExcludeTasteState.setTextColor(getColor(R.color.text_secondary));
-        }
-        menuBinding.itemMenuExcludeTaste.setOnClickListener(v -> {
-            boolean nextExcluded = !sp.getBoolean("exclude_" + songId, false);
-            sp.edit().putBoolean("exclude_" + songId, nextExcluded).apply();
-            if (nextExcluded) {
-                Toast.makeText(this, "Đã loại trừ bài hát này khỏi hồ sơ gu âm nhạc", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Đã tính lại bài hát này vào hồ sơ gu âm nhạc", Toast.LENGTH_SHORT).show();
-            }
-            menuDialog.dismiss();
-        });
-
-        // 7. Thêm vào danh sách chờ
+        // 6. Thêm vào danh sách chờ
         menuBinding.itemMenuAddToQueue.setOnClickListener(v -> {
             if (currentSong != null) {
                 MusicPlayerManager.getInstance().addToQueue(currentSong);
@@ -708,7 +826,15 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
             navigateToArtistDetail();
         });
 
-        // 10. Hẹn giờ tắt
+        // 10. Tốc độ phát
+        float currentSpeed = MusicPlayerManager.getInstance().getPlaybackSpeed();
+        menuBinding.tvMenuPlaybackSpeedSummary.setText(formatSpeedSummary(currentSpeed));
+        menuBinding.itemMenuPlaybackSpeed.setOnClickListener(v -> {
+            menuDialog.dismiss();
+            showPlaybackSpeedBottomSheet();
+        });
+
+        // 11. Hẹn giờ tắt
         boolean isTimerActive = MusicPlayerManager.getInstance().isSleepTimerActive();
         String timerDesc = MusicPlayerManager.getInstance().getSleepTimerDescription();
         menuBinding.tvSleepTimerStatusSummary.setText(timerDesc);
@@ -722,6 +848,70 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
         });
 
         menuDialog.show();
+    }
+
+    private void showSimilarSongsBottomSheet(String songId, String title) {
+        if (songId == null || songId.isEmpty()) {
+            Toast.makeText(this, "Không có thông tin bài hát hiện tại", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        BottomSheetDialog similarDialog = new BottomSheetDialog(this, R.style.Theme_Spotify_BottomSheet);
+        LayoutBottomSheetSimilarSongsBinding similarBinding = LayoutBottomSheetSimilarSongsBinding.inflate(getLayoutInflater());
+        similarDialog.setContentView(similarBinding.getRoot());
+
+        similarBinding.tvSimilarTargetSubtitle.setText("Dựa trên đặc trưng âm nhạc của: " + (title != null ? title : "bài hát này"));
+        similarBinding.pbSimilarLoading.setVisibility(View.VISIBLE);
+        similarBinding.rvSimilarTracks.setVisibility(View.GONE);
+        similarBinding.tvSimilarEmpty.setVisibility(View.GONE);
+        similarBinding.btnPlayAllSimilar.setVisibility(View.GONE);
+
+        SimilarSongAdapter adapter = new SimilarSongAdapter((song, list, position) -> {
+            MusicPlayerManager.getInstance().playQueue(list, position);
+            Toast.makeText(this, "Đang phát: " + song.getTitle(), Toast.LENGTH_SHORT).show();
+            similarDialog.dismiss();
+        });
+
+        similarBinding.rvSimilarTracks.setLayoutManager(new LinearLayoutManager(this));
+        similarBinding.rvSimilarTracks.setAdapter(adapter);
+
+        ApiClient.getApiService().getSimilarSongs(songId).enqueue(new Callback<ApiResponse<List<Song>>>() {
+            @Override
+            public void onResponse(@NonNull Call<ApiResponse<List<Song>>> call, @NonNull Response<ApiResponse<List<Song>>> response) {
+                if (isFinishing() || isDestroyed()) return;
+                similarBinding.pbSimilarLoading.setVisibility(View.GONE);
+
+                if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
+                    List<Song> similarSongs = response.body().getData();
+                    if (!similarSongs.isEmpty()) {
+                        adapter.setSongs(similarSongs);
+                        similarBinding.rvSimilarTracks.setVisibility(View.VISIBLE);
+                        similarBinding.btnPlayAllSimilar.setVisibility(View.VISIBLE);
+                        similarBinding.btnPlayAllSimilar.setOnClickListener(v -> {
+                            MusicPlayerManager.getInstance().playQueue(similarSongs, 0);
+                            Toast.makeText(PlayerActivity.this, "Đang phát danh sách bài hát tương tự", Toast.LENGTH_SHORT).show();
+                            similarDialog.dismiss();
+                        });
+                    } else {
+                        similarBinding.tvSimilarEmpty.setVisibility(View.VISIBLE);
+                        similarBinding.tvSimilarEmpty.setText("Chưa tìm thấy bài hát tương tự phù hợp.");
+                    }
+                } else {
+                    similarBinding.tvSimilarEmpty.setVisibility(View.VISIBLE);
+                    similarBinding.tvSimilarEmpty.setText("Không thể tải danh sách bài hát tương tự.");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ApiResponse<List<Song>>> call, @NonNull Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
+                similarBinding.pbSimilarLoading.setVisibility(View.GONE);
+                similarBinding.tvSimilarEmpty.setVisibility(View.VISIBLE);
+                similarBinding.tvSimilarEmpty.setText("Lỗi kết nối khi tải gợi ý âm nhạc.");
+            }
+        });
+
+        similarDialog.show();
     }
 
     private void showSleepTimerDialog() {
@@ -789,22 +979,94 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
         LayoutBottomSheetAlbumInfoBinding albumBinding = LayoutBottomSheetAlbumInfoBinding.inflate(getLayoutInflater());
         albumDialog.setContentView(albumBinding.getRoot());
 
-        String title = MusicPlayerManager.getInstance().getCurrentTitle();
-        String artist = MusicPlayerManager.getInstance().getCurrentArtist();
-        String coverUrl = MusicPlayerManager.getInstance().getCurrentCoverUrl();
+        Song currentSong = MusicPlayerManager.getInstance().getCurrentSong();
+        Album albumObj = currentSong != null ? currentSong.getAlbum() : null;
+        String fallbackTitle = MusicPlayerManager.getInstance().getCurrentTitle();
+        String fallbackArtist = MusicPlayerManager.getInstance().getCurrentArtist();
+        String fallbackCover = MusicPlayerManager.getInstance().getCurrentCoverUrl();
 
-        albumBinding.tvAlbumTitle.setText("Album " + (title != null && !title.isEmpty() ? title : "Top Hits"));
-        albumBinding.tvAlbumArtist.setText(artist != null && !artist.isEmpty() ? artist : "Spotify");
-        albumBinding.tvAlbumMeta.setText("2026 • 15 bài hát • 320 kbps High-Definition");
+        String initialTitle = (albumObj != null && !albumObj.getTitle().isEmpty())
+                ? albumObj.getTitle()
+                : (fallbackTitle != null && !fallbackTitle.isEmpty() ? fallbackTitle : "Đĩa đơn");
+        String initialArtist = (albumObj != null && !albumObj.getArtistName().isEmpty())
+                ? albumObj.getArtistName()
+                : (fallbackArtist != null && !fallbackArtist.isEmpty() ? fallbackArtist : "VibeTune");
+
+        albumBinding.tvAlbumTitle.setText(initialTitle);
+        albumBinding.tvAlbumArtist.setText(initialArtist);
+        albumBinding.tvAlbumMeta.setText(albumObj != null && albumObj.getReleaseYear() > 0
+                ? albumObj.getReleaseYear() + " • Đang tải thông tin album..."
+                : "Đĩa đơn • Nhạc gốc từ máy chủ VibeTune");
+        albumBinding.btnPlayAlbum.setText(albumObj != null && !albumObj.getId().isEmpty()
+                ? "Phát toàn bộ album"
+                : "Phát bài hát");
 
         Glide.with(this)
-                .load(coverUrl)
+                .load(fallbackCover)
                 .placeholder(R.drawable.bg_card_rounded)
                 .error(R.drawable.bg_card_rounded)
                 .into(albumBinding.ivAlbumCover);
 
+        @SuppressWarnings("unchecked")
+        final List<Song>[] albumTracksHolder = new List[]{null};
+
+        if (albumObj != null && !albumObj.getId().isEmpty()) {
+            ApiClient.getApiService().getAlbumDetails(albumObj.getId()).enqueue(new Callback<ApiResponse<Album>>() {
+                @Override
+                public void onResponse(@NonNull Call<ApiResponse<Album>> call,
+                                       @NonNull Response<ApiResponse<Album>> response) {
+                    if (isFinishing() || isDestroyed() || !albumDialog.isShowing()) return;
+                    if (!response.isSuccessful() || response.body() == null || response.body().getData() == null) {
+                        albumBinding.tvAlbumMeta.setText("Đĩa đơn • Nhạc gốc từ máy chủ VibeTune");
+                        return;
+                    }
+                    Album fetched = response.body().getData();
+                    if (!fetched.getTitle().isEmpty()) {
+                        albumBinding.tvAlbumTitle.setText(fetched.getTitle());
+                    }
+                    if (!fetched.getArtistName().isEmpty()) {
+                        albumBinding.tvAlbumArtist.setText(fetched.getArtistName());
+                    }
+                    String yearPrefix = fetched.getReleaseYear() > 0 ? fetched.getReleaseYear() + " • " : "";
+                    int totalTracks = fetched.getTotalTracks();
+                    albumBinding.tvAlbumMeta.setText(yearPrefix + totalTracks + " bài hát • Bản gốc máy chủ");
+
+                    List<Song> tracks = fetched.getTracks();
+                    if (tracks != null && !tracks.isEmpty()) {
+                        albumTracksHolder[0] = tracks;
+                        albumBinding.btnPlayAlbum.setText("Phát toàn bộ album (" + tracks.size() + " bài)");
+                    }
+
+                    String resolvedCover = !fetched.getCoverImageUrl().isEmpty()
+                            ? ApiClient.resolveMediaUrl(fetched.getCoverImageUrl())
+                            : fallbackCover;
+                    Glide.with(PlayerActivity.this)
+                            .load(resolvedCover)
+                            .placeholder(R.drawable.bg_card_rounded)
+                            .error(R.drawable.bg_card_rounded)
+                            .into(albumBinding.ivAlbumCover);
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<ApiResponse<Album>> call, @NonNull Throwable t) {
+                    if (isFinishing() || isDestroyed() || !albumDialog.isShowing()) return;
+                    albumBinding.tvAlbumMeta.setText("Không thể tải chi tiết album");
+                }
+            });
+        }
+
         albumBinding.btnPlayAlbum.setOnClickListener(v -> {
-            Toast.makeText(this, "Đang phát Album " + title, Toast.LENGTH_SHORT).show();
+            List<Song> tracks = albumTracksHolder[0];
+            CharSequence displayTitle = albumBinding.tvAlbumTitle.getText();
+            if (tracks != null && !tracks.isEmpty()) {
+                MusicPlayerManager.getInstance().playQueue(tracks, 0);
+                Toast.makeText(this, "Đang phát album " + displayTitle, Toast.LENGTH_SHORT).show();
+            } else if (currentSong != null) {
+                MusicPlayerManager.getInstance().playSong(currentSong);
+                Toast.makeText(this, "Đang phát " + displayTitle, Toast.LENGTH_SHORT).show();
+            } else {
+                MusicPlayerManager.getInstance().seekTo(0);
+            }
             albumDialog.dismiss();
         });
 
@@ -818,20 +1080,27 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
 
         Song song = MusicPlayerManager.getInstance().getCurrentSong();
         Artist artistObj = song != null ? song.getArtist() : null;
-        String artistName = MusicPlayerManager.getInstance().getCurrentArtist();
+        String artistId = artistObj != null ? artistObj.getId() : null;
+        String rawArtistName = MusicPlayerManager.getInstance().getCurrentArtist();
+        final String artistName = rawArtistName != null && !rawArtistName.isEmpty() ? rawArtistName : "Nghệ sĩ VibeTune";
+
         String avatarUrl = (artistObj != null && artistObj.getAvatarUrl() != null && !artistObj.getAvatarUrl().isEmpty())
                 ? ApiClient.resolveMediaUrl(artistObj.getAvatarUrl())
                 : MusicPlayerManager.getInstance().getCurrentCoverUrl();
 
-        artistBinding.tvArtistName.setText(artistName != null && !artistName.isEmpty() ? artistName : "Nghệ sĩ Spotify");
+        artistBinding.tvArtistName.setText(artistName);
         if (artistObj != null && artistObj.getFollowersCount() > 0) {
-            artistBinding.tvArtistFollowers.setText(String.format(Locale.getDefault(), "%,d người nghe hàng tháng", artistObj.getFollowersCount()));
+            artistBinding.tvArtistFollowers.setText(String.format(Locale.getDefault(), "%,d người theo dõi", artistObj.getFollowersCount()));
         } else {
-            artistBinding.tvArtistFollowers.setText("2.845.210 người nghe hàng tháng");
+            artistBinding.tvArtistFollowers.setText(artistId != null && !artistId.isEmpty()
+                    ? "Đang tải thông tin nghệ sĩ..."
+                    : "Nghệ sĩ trên VibeTune");
         }
 
         if (artistObj != null && artistObj.getBio() != null && !artistObj.getBio().isEmpty()) {
             artistBinding.tvArtistBio.setText(artistObj.getBio());
+        } else {
+            artistBinding.tvArtistBio.setText("Nghệ sĩ đang hoạt động trên hệ thống VibeTune.");
         }
 
         Glide.with(this)
@@ -840,20 +1109,98 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
                 .error(R.drawable.bg_card_rounded)
                 .into(artistBinding.ivArtistAvatar);
 
-        artistBinding.btnFollowArtist.setOnClickListener(v -> {
-            boolean isFollowing = "Đang theo dõi".equals(artistBinding.btnFollowArtist.getText().toString());
-            if (isFollowing) {
-                artistBinding.btnFollowArtist.setText("Theo dõi nghệ sĩ");
-                artistBinding.btnFollowArtist.setBackgroundColor(getColor(R.color.spotify_green));
-                artistBinding.btnFollowArtist.setTextColor(getColor(R.color.spotify_black));
-                Toast.makeText(this, "Đã bỏ theo dõi " + artistName, Toast.LENGTH_SHORT).show();
-            } else {
-                artistBinding.btnFollowArtist.setText("Đang theo dõi");
-                artistBinding.btnFollowArtist.setBackgroundColor(0xFF333333);
-                artistBinding.btnFollowArtist.setTextColor(getColor(R.color.white));
-                Toast.makeText(this, "Đã theo dõi " + artistName, Toast.LENGTH_SHORT).show();
-            }
-        });
+        final boolean[] isFollowingHolder = new boolean[]{artistObj != null && artistObj.isFollowed()};
+        bindArtistFollowButton(artistBinding.btnFollowArtist, isFollowingHolder[0]);
+
+        if (artistId != null && !artistId.isEmpty()) {
+            ApiClient.getApiService().getSongsByArtist(artistId).enqueue(new Callback<ApiResponse<ArtistDetailData>>() {
+                @Override
+                public void onResponse(@NonNull Call<ApiResponse<ArtistDetailData>> call,
+                                       @NonNull Response<ApiResponse<ArtistDetailData>> response) {
+                    if (isFinishing() || isDestroyed() || !artistDialog.isShowing()) return;
+                    if (!response.isSuccessful() || response.body() == null || response.body().getData() == null) {
+                        return;
+                    }
+                    Artist fetched = response.body().getData().getArtist();
+                    if (fetched == null) return;
+
+                    if (fetched.getName() != null && !fetched.getName().isEmpty()) {
+                        artistBinding.tvArtistName.setText(fetched.getName());
+                    }
+                    artistBinding.tvArtistFollowers.setText(String.format(Locale.getDefault(), "%,d người theo dõi", fetched.getFollowersCount()));
+                    if (fetched.getBio() != null && !fetched.getBio().isEmpty()) {
+                        artistBinding.tvArtistBio.setText(fetched.getBio());
+                    }
+                    if (fetched.getAvatarUrl() != null && !fetched.getAvatarUrl().isEmpty()) {
+                        Glide.with(PlayerActivity.this)
+                                .load(ApiClient.resolveMediaUrl(fetched.getAvatarUrl()))
+                                .placeholder(R.drawable.bg_card_rounded)
+                                .error(R.drawable.bg_card_rounded)
+                                .into(artistBinding.ivArtistAvatar);
+                    }
+                    isFollowingHolder[0] = fetched.isFollowed();
+                    bindArtistFollowButton(artistBinding.btnFollowArtist, isFollowingHolder[0]);
+                    if (artistObj != null) {
+                        artistObj.setFollowed(fetched.isFollowed());
+                        artistObj.setFollowersCount(fetched.getFollowersCount());
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<ApiResponse<ArtistDetailData>> call, @NonNull Throwable t) {
+                    // Keep initial cached info if network refresh fails
+                }
+            });
+
+            artistBinding.btnFollowArtist.setOnClickListener(v -> {
+                artistBinding.btnFollowArtist.setEnabled(false);
+                ApiClient.getApiService().toggleFollowArtist(artistId).enqueue(new Callback<ApiResponse<Map<String, Object>>>() {
+                    @Override
+                    public void onResponse(@NonNull Call<ApiResponse<Map<String, Object>>> call,
+                                           @NonNull Response<ApiResponse<Map<String, Object>>> response) {
+                        if (isFinishing() || isDestroyed()) return;
+                        artistBinding.btnFollowArtist.setEnabled(true);
+                        if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
+                            Map<String, Object> data = response.body().getData();
+                            Object followObj = data.get("isFollowed");
+                            boolean nextFollowed = followObj instanceof Boolean
+                                    ? (Boolean) followObj
+                                    : !isFollowingHolder[0];
+                            isFollowingHolder[0] = nextFollowed;
+                            bindArtistFollowButton(artistBinding.btnFollowArtist, nextFollowed);
+
+                            Object countObj = data.get("followersCount");
+                            if (countObj instanceof Number) {
+                                long count = ((Number) countObj).longValue();
+                                artistBinding.tvArtistFollowers.setText(String.format(Locale.getDefault(), "%,d người theo dõi", count));
+                                if (artistObj != null) {
+                                    artistObj.setFollowersCount(count);
+                                }
+                            }
+                            if (artistObj != null) {
+                                artistObj.setFollowed(nextFollowed);
+                            }
+                            Toast.makeText(PlayerActivity.this,
+                                    (nextFollowed ? "Đã theo dõi " : "Đã bỏ theo dõi ") + artistBinding.tvArtistName.getText(),
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(PlayerActivity.this, "Không thể cập nhật trạng thái theo dõi", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<ApiResponse<Map<String, Object>>> call, @NonNull Throwable t) {
+                        if (isFinishing() || isDestroyed()) return;
+                        artistBinding.btnFollowArtist.setEnabled(true);
+                        Toast.makeText(PlayerActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
+        } else {
+            artistBinding.btnFollowArtist.setEnabled(false);
+            artistBinding.btnFollowArtist.setAlpha(0.6f);
+            artistBinding.btnFollowArtist.setText("Chưa có hồ sơ nghệ sĩ");
+        }
 
         artistBinding.btnViewAllSongs.setOnClickListener(v -> {
             artistDialog.dismiss();
@@ -861,6 +1208,18 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
         });
 
         artistDialog.show();
+    }
+
+    private void bindArtistFollowButton(MaterialButton button, boolean isFollowing) {
+        if (isFollowing) {
+            button.setText("Đang theo dõi");
+            button.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.spotify_elevated)));
+            button.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+        } else {
+            button.setText("Theo dõi nghệ sĩ");
+            button.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.spotify_green)));
+            button.setTextColor(ContextCompat.getColor(this, R.color.on_primary_accent));
+        }
     }
 
     private void navigateToArtistDetail() {
@@ -887,8 +1246,8 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
         String songId = MusicPlayerManager.getInstance().getCurrentSongId();
 
         playlistBinding.btnCreateNewPlaylist.setOnClickListener(v -> {
-            Toast.makeText(this, "Vào mục Thư viện để tạo Playlist mới", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
+            SongOptionsBottomSheetDialog.openCreatePlaylistAndAddSong(this, songId);
         });
 
         playlistBinding.pbLoadingPlaylists.setVisibility(View.VISIBLE);
@@ -901,7 +1260,7 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
                 if (response.isSuccessful() && response.body() != null && response.body().getData() != null && !response.body().getData().isEmpty()) {
                     List<Playlist> playlists = response.body().getData();
                     PlaylistPickerAdapter adapter = new PlaylistPickerAdapter(playlists, playlist -> {
-                        addSongToSpecificPlaylist(playlist.getId(), playlist.getTitle(), songId);
+                        SongOptionsBottomSheetDialog.addSongToPlaylist(PlayerActivity.this, playlist.getId(), playlist.getTitle(), songId);
                         dialog.dismiss();
                     });
                     playlistBinding.rvUserPlaylists.setAdapter(adapter);
@@ -919,32 +1278,6 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
         });
 
         dialog.show();
-    }
-
-    private void addSongToSpecificPlaylist(String playlistId, String playlistTitle, String songId) {
-        if (songId == null || songId.isEmpty()) {
-            Toast.makeText(this, "Đã lưu vào danh sách phát " + playlistTitle, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        Map<String, String> body = new HashMap<>();
-        body.put("songId", songId);
-
-        ApiClient.getApiService().addTrackToPlaylist(playlistId, body).enqueue(new Callback<ApiResponse<Object>>() {
-            @Override
-            public void onResponse(@NonNull Call<ApiResponse<Object>> call, @NonNull Response<ApiResponse<Object>> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(PlayerActivity.this, "Đã thêm bài hát vào " + playlistTitle, Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(PlayerActivity.this, "Đã lưu vào " + playlistTitle, Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<ApiResponse<Object>> call, @NonNull Throwable t) {
-                Toast.makeText(PlayerActivity.this, "Lỗi thêm vào danh sách phát: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     private void toggleFavorite() {
@@ -1037,7 +1370,14 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
 
     @Override
     public void onPlaybackStateChanged(boolean isPlaying) {
-        runOnUiThread(() -> updatePlayPauseButton(isPlaying));
+        runOnUiThread(() -> {
+            updatePlayPauseButton(isPlaying);
+            if (isPlaying) {
+                startLyricsTicker();
+            } else {
+                stopLyricsTicker();
+            }
+        });
     }
 
     @Override
@@ -1070,6 +1410,7 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
                 binding.tvCurrentTimestamp.setText(formatTime(currentMs));
                 binding.tvTotalDuration.setText(formatTime(totalMs));
             }
+            syncLyricsProgress(currentMs);
         });
     }
 
@@ -1078,9 +1419,152 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
         runOnUiThread(() -> Toast.makeText(PlayerActivity.this, message, Toast.LENGTH_SHORT).show());
     }
 
+    @Override
+    public void onPlaybackSpeedChanged(float speed) {
+        runOnUiThread(() -> updatePlaybackSpeedUI(speed));
+    }
+
+    private void updatePlaybackSpeedUI(float speed) {
+        if (binding == null) return;
+        float normalized = MusicPlayerManager.normalizeSpeedValue(speed);
+        String rateLabel = formatSpeedShort(normalized);
+        binding.tvPlaybackSpeed.setText("Tốc độ " + rateLabel);
+        boolean isCustom = Math.abs(normalized - MusicPlayerManager.DEFAULT_PLAYBACK_SPEED) >= 0.01f;
+        binding.btnPlaybackSpeed.setBackgroundResource(isCustom ? R.drawable.bg_pill_active : R.drawable.bg_pill_inactive);
+        binding.tvPlaybackSpeed.setTextColor(ContextCompat.getColor(
+                this,
+                isCustom ? R.color.on_primary_accent : R.color.text_primary
+        ));
+        binding.ivPlaybackSpeedIcon.setColorFilter(ContextCompat.getColor(
+                this,
+                isCustom ? R.color.on_primary_accent : R.color.text_secondary
+        ));
+    }
+
+    private String formatSpeedShort(float speed) {
+        if (Math.abs(speed - 0.75f) < 0.01f) return "0.75x";
+        if (Math.abs(speed - 1.25f) < 0.01f) return "1.25x";
+        return String.format(Locale.US, "%.1fx", speed);
+    }
+
+    private String formatSpeedSummary(float speed) {
+        String shortLabel = formatSpeedShort(MusicPlayerManager.normalizeSpeedValue(speed));
+        return "1.0x".equals(shortLabel) ? "1.0x (Chuẩn)" : shortLabel;
+    }
+
+    private void showPlaybackSpeedBottomSheet() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Spotify_BottomSheet);
+        LayoutBottomSheetPlaybackSpeedBinding speedBinding = LayoutBottomSheetPlaybackSpeedBinding.inflate(getLayoutInflater());
+        dialog.setContentView(speedBinding.getRoot());
+
+        float current = MusicPlayerManager.normalizeSpeedValue(MusicPlayerManager.getInstance().getPlaybackSpeed());
+        speedBinding.ivCheckSpeed05.setVisibility(Math.abs(current - 0.5f) < 0.01f ? View.VISIBLE : View.GONE);
+        speedBinding.ivCheckSpeed075.setVisibility(Math.abs(current - 0.75f) < 0.01f ? View.VISIBLE : View.GONE);
+        speedBinding.ivCheckSpeed10.setVisibility(Math.abs(current - 1.0f) < 0.01f ? View.VISIBLE : View.GONE);
+        speedBinding.ivCheckSpeed125.setVisibility(Math.abs(current - 1.25f) < 0.01f ? View.VISIBLE : View.GONE);
+        speedBinding.ivCheckSpeed15.setVisibility(Math.abs(current - 1.5f) < 0.01f ? View.VISIBLE : View.GONE);
+        speedBinding.ivCheckSpeed20.setVisibility(Math.abs(current - 2.0f) < 0.01f ? View.VISIBLE : View.GONE);
+
+        bindSpeedOption(speedBinding.itemSpeed05, 0.5f, dialog);
+        bindSpeedOption(speedBinding.itemSpeed075, 0.75f, dialog);
+        bindSpeedOption(speedBinding.itemSpeed10, 1.0f, dialog);
+        bindSpeedOption(speedBinding.itemSpeed125, 1.25f, dialog);
+        bindSpeedOption(speedBinding.itemSpeed15, 1.5f, dialog);
+        bindSpeedOption(speedBinding.itemSpeed20, 2.0f, dialog);
+
+        dialog.show();
+    }
+
+    private void bindSpeedOption(View itemView, float speed, BottomSheetDialog dialog) {
+        itemView.setOnClickListener(v -> {
+            MusicPlayerManager.getInstance().setPlaybackSpeed(speed);
+            Toast.makeText(this, "Tốc độ phát: " + formatSpeedSummary(speed), Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+    }
+
+    @Override
+    public void onMoodFlowChanged(boolean isActive, String arc, String reason) {
+        runOnUiThread(() -> updateMoodFlowUI(isActive, arc, reason));
+    }
+
+    private void updateMoodFlowUI(boolean isActive, String arc, String reason) {
+        if (isActive) {
+            String arcLabel = "Mood Flow • Ổn định";
+            if ("wind_down".equals(arc)) arcLabel = "Mood Flow • Thư giãn";
+            else if ("workout".equals(arc)) arcLabel = "Mood Flow • Tập luyện";
+            else if ("focus".equals(arc)) arcLabel = "Mood Flow • Tập trung";
+            else if ("steady".equals(arc)) arcLabel = "Mood Flow • Ổn định";
+
+            binding.tvMoodFlowArcName.setText(arcLabel);
+            binding.tvMoodFlowArcName.setTextColor(ContextCompat.getColor(this, R.color.spotify_green));
+            binding.ivMoodFlowDot.setColorFilter(ContextCompat.getColor(this, R.color.spotify_green));
+            binding.btnMoodFlowArcSelector.setVisibility(View.VISIBLE);
+
+            if (reason != null && !reason.trim().isEmpty()) {
+                binding.layoutMoodFlowReason.setVisibility(View.VISIBLE);
+                binding.tvMoodFlowReason.setText(reason.trim());
+            } else {
+                binding.layoutMoodFlowReason.setVisibility(View.GONE);
+            }
+        } else {
+            binding.tvMoodFlowArcName.setText("Bật Mood Flow");
+            binding.tvMoodFlowArcName.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+            binding.ivMoodFlowDot.setColorFilter(ContextCompat.getColor(this, R.color.text_secondary));
+            binding.btnMoodFlowArcSelector.setVisibility(View.VISIBLE);
+            binding.layoutMoodFlowReason.setVisibility(View.GONE);
+        }
+    }
+
+    private void showMoodFlowArcBottomSheet() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Spotify_BottomSheet);
+        LayoutBottomSheetMoodFlowArcBinding sheetBinding = LayoutBottomSheetMoodFlowArcBinding.inflate(getLayoutInflater());
+        dialog.setContentView(sheetBinding.getRoot());
+
+        sheetBinding.btnArcWindDown.setOnClickListener(v -> {
+            applyArcChoice("wind_down", "Thư giãn (Wind Down)");
+            dialog.dismiss();
+        });
+
+        sheetBinding.btnArcWorkout.setOnClickListener(v -> {
+            applyArcChoice("workout", "Tập luyện (Workout)");
+            dialog.dismiss();
+        });
+
+        sheetBinding.btnArcFocus.setOnClickListener(v -> {
+            applyArcChoice("focus", "Tập trung (Focus)");
+            dialog.dismiss();
+        });
+
+        sheetBinding.btnArcSteady.setOnClickListener(v -> {
+            applyArcChoice("steady", "Ổn định (Steady)");
+            dialog.dismiss();
+        });
+
+        sheetBinding.btnArcTurnOff.setOnClickListener(v -> {
+            MusicPlayerManager.getInstance().stopMoodFlow();
+            Toast.makeText(this, "Đã tắt Mood Flow", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
+    private void applyArcChoice(String arc, String arcName) {
+        MusicPlayerManager pm = MusicPlayerManager.getInstance();
+        if (!pm.isMoodFlowMode()) {
+            pm.startMoodFlow(arc);
+            Toast.makeText(this, "Đã bật Mood Flow: " + arcName, Toast.LENGTH_SHORT).show();
+        } else {
+            pm.changeArc(arc);
+            Toast.makeText(this, "Đã chuyển lộ trình: " + arcName, Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private String formatTime(int ms) {
-        int seconds = (ms / 1000) % 60;
-        int minutes = (ms / (1000 * 60)) % 60;
+        int totalSec = Math.max(0, ms / 1000);
+        int seconds = totalSec % 60;
+        int minutes = totalSec / 60;
         return String.format(Locale.getDefault(), "%d:%02d", minutes, seconds);
     }
 
@@ -1093,6 +1577,8 @@ public class PlayerActivity extends AppCompatActivity implements MusicPlayerMana
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        stopLyricsTicker();
+        lyricsTouchHandler.removeCallbacksAndMessages(null);
         MusicPlayerManager.getInstance().removeListener(this);
         if (queueBottomSheetDialog != null && queueBottomSheetDialog.isShowing()) {
             queueBottomSheetDialog.dismiss();

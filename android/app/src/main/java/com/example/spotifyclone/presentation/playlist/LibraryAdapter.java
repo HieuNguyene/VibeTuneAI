@@ -66,12 +66,25 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryV
             binding.tvLibraryTitle.setText(item.getTitle());
             binding.tvLibrarySubtitle.setText(item.getSubtitle());
 
+            boolean isLocked = item.isLocked();
+            if (isLocked) {
+                binding.ivLibraryThumb.setAlpha(0.55f);
+                binding.tvLibraryTitle.setAlpha(0.55f);
+                binding.tvLibrarySubtitle.setAlpha(0.70f);
+            } else {
+                binding.ivLibraryThumb.setAlpha(1.0f);
+                binding.tvLibraryTitle.setAlpha(1.0f);
+                binding.tvLibrarySubtitle.setAlpha(1.0f);
+            }
+
             if (item.getType() == LibraryItem.Type.LIKED_SONGS) {
                 binding.ivLibraryThumb.setImageResource(R.drawable.ic_favorite_filled);
                 binding.ivLibraryThumb.setColorFilter(itemView.getContext().getColor(R.color.spotify_green));
-                binding.ivLibraryThumb.setBackgroundColor(0xFF282828);
+                binding.ivLibraryThumb.setBackgroundColor(
+                        androidx.core.content.ContextCompat.getColor(itemView.getContext(), R.color.spotify_hover));
                 binding.ivPinIcon.setVisibility(View.VISIBLE);
                 binding.ivPinIcon.setImageResource(R.drawable.ic_favorite_filled);
+                binding.ivPinIcon.setColorFilter(itemView.getContext().getColor(R.color.spotify_green));
             } else if (item.getType() == LibraryItem.Type.PLAYLIST) {
                 binding.ivLibraryThumb.setColorFilter(null);
                 Glide.with(itemView.getContext())
@@ -80,9 +93,17 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryV
                         .error(R.drawable.bg_card_rounded)
                         .into(binding.ivLibraryThumb);
 
-                binding.ivPinIcon.setVisibility(item.isPinned() ? View.VISIBLE : View.GONE);
-                if (item.isPinned()) {
-                    binding.ivPinIcon.setImageResource(R.drawable.ic_sparkle_ai);
+                if (isLocked) {
+                    binding.ivPinIcon.setVisibility(View.VISIBLE);
+                    binding.ivPinIcon.setImageResource(R.drawable.ic_lock);
+                    binding.ivPinIcon.setColorFilter(
+                            androidx.core.content.ContextCompat.getColor(itemView.getContext(), R.color.text_secondary));
+                } else if (item.isPinned()) {
+                    binding.ivPinIcon.setVisibility(View.VISIBLE);
+                    binding.ivPinIcon.setImageResource(R.drawable.ic_music_pin);
+                    binding.ivPinIcon.setColorFilter(itemView.getContext().getColor(R.color.spotify_green));
+                } else {
+                    binding.ivPinIcon.setVisibility(View.GONE);
                 }
             } else if (item.getType() == LibraryItem.Type.ARTIST) {
                 binding.ivLibraryThumb.setColorFilter(null);
@@ -93,7 +114,7 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryV
                         .error(R.drawable.ic_person)
                         .into(binding.ivLibraryThumb);
                 binding.ivPinIcon.setVisibility(View.GONE);
-            } else if (item.getType() == LibraryItem.Type.ALBUM) {
+            } else if (item.getType() == LibraryItem.Type.ALBUM || item.getType() == LibraryItem.Type.SONG) {
                 binding.ivLibraryThumb.setColorFilter(null);
                 Glide.with(itemView.getContext())
                         .load(ApiClient.resolveMediaUrl(item.getCoverUrl()))

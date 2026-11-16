@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -60,6 +61,7 @@ public class LoginActivity extends AppCompatActivity {
 
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        com.example.spotifyclone.util.ThemeManager.applySystemBarsAppearance(this);
 
         // Bù trừ an toàn thanh trạng thái trên đỉnh và thanh điều hướng ở đáy
         com.example.spotifyclone.util.WindowInsetHelper.applySystemBarInsets(binding.getRoot(), true, true);
@@ -69,11 +71,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void initGoogleSignIn() {
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .requestProfile()
-                .build();
-        googleSignInClient = GoogleSignIn.getClient(this, gso);
+        googleSignInClient = GoogleSignInHelper.createClient(this);
 
         googleSignInLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -88,8 +86,7 @@ public class LoginActivity extends AppCompatActivity {
                             Toast.makeText(this, "Không nhận được thông tin tài khoản Google", Toast.LENGTH_SHORT).show();
                         }
                     } catch (ApiException e) {
-                        // Trình giả lập chưa đăng nhập Google Play hoặc chưa cấu hình OAuth GCP -> mở hộp thoại đăng nhập giả lập thông minh
-                        showGoogleFallbackDialog();
+                        GoogleSignInHelper.showUnavailableDialog(this, "Mã lỗi Play Services: " + e.getStatusCode());
                     }
                 }
         );
@@ -102,24 +99,40 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Dang nhap Google
+        // Dang nhap Google (yêu cầu Google ID Token RS256 hợp lệ)
         binding.btnContinueGoogle.setOnClickListener(v -> {
+            if (!GoogleSignInHelper.isConfigured(this)) {
+                GoogleSignInHelper.showUnavailableDialog(this, "Chưa cấu hình google_web_client_id");
+                return;
+            }
             try {
                 googleSignInClient.signOut();
                 Intent signInIntent = googleSignInClient.getSignInIntent();
                 googleSignInLauncher.launch(signInIntent);
             } catch (Exception e) {
-                showGoogleFallbackDialog();
+                GoogleSignInHelper.showUnavailableDialog(this, e.getMessage());
             }
         });
 
         // Quen mat khau
-        binding.tvForgotPassword.setOnClickListener(v -> {
-            Toast.makeText(this, "Vui lòng liên hệ quản trị viên để đặt lại mật khẩu.", Toast.LENGTH_LONG).show();
-        });
+        binding.tvForgotPassword.setOnClickListener(v -> showForgotPasswordDialog());
+
+        // Hien thi va cau hinh Server URL
+        updateServerStatusText();
+        binding.btnServerConfig.setOnClickListener(v -> showServerConfigDialog());
+        binding.tvServerUrlStatus.setOnClickListener(v -> showServerConfigDialog());
 
         // Xu ly Dang nhap
-        binding.btnLogin.setOnClickListener(v -> performLogin());
+        binding.btnLogin.setOnClickListener(v -> {
+            hideKeyboard();
+            performLogin();
+        });
+    }
+
+    private void updateServerStatusText() {
+        if (binding == null) return;
+        String currentUrl = ApiClient.getBaseUrl();
+        binding.tvServerUrlStatus.setText("Máy chủ: " + currentUrl + " (Nhấn để đổi)");
     }
 
     private void performLogin() {
@@ -174,49 +187,19 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void handleGoogleSuccess(GoogleSignInAccount account) {
-        String googleId = account.getId() != null ? account.getId() : "google_" + System.currentTimeMillis();
-        String email = account.getEmail();
-        String displayName = account.getDisplayName() != null ? account.getDisplayName() : "Google User";
-        String avatarUrl = account.getPhotoUrl() != null ? account.getPhotoUrl().toString() : "";
-
-        callGoogleLoginApi(googleId, email, displayName, avatarUrl);
+        String idToken = GoogleSignInHelper.extractVerifiedIdToken(account);
+        if (TextUtils.isEmpty(idToken)) {
+            GoogleSignInHelper.showUnavailableDialog(this, "Không nhận được Google ID Token từ Google Play Services");
+            return;
+        }
+        String displayName = account.getDisplayName() != null ? account.getDisplayName() : "Bạn";
+        callGoogleLoginApi(idToken, displayName);
     }
 
-    private void showGoogleFallbackDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Đăng nhập với Google");
-        builder.setMessage("Nhập email Google của bạn để đăng nhập nhanh:");
-
-        final EditText inputEmail = new EditText(this);
-        inputEmail.setHint("example@gmail.com");
-        inputEmail.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
-        inputEmail.setTextColor(getResources().getColor(R.color.white));
-        inputEmail.setHintTextColor(getResources().getColor(R.color.text_secondary));
-
-        LinearLayout container = new LinearLayout(this);
-        container.setOrientation(LinearLayout.VERTICAL);
-        int padding = (int) (16 * getResources().getDisplayMetrics().density);
-        container.setPadding(padding, padding / 2, padding, padding / 2);
-        container.addView(inputEmail);
-
-        builder.setView(container);
-        builder.setPositiveButton("Đăng nhập", (dialog, which) -> {
-            String email = inputEmail.getText().toString().trim();
-            if (TextUtils.isEmpty(email)) {
-                email = "user" + (System.currentTimeMillis() % 10000) + "@gmail.com";
-            }
-            String googleId = "gid_" + Math.abs(email.hashCode());
-            String displayName = email.contains("@") ? email.split("@")[0] : "Google User";
-            callGoogleLoginApi(googleId, email, displayName, "");
-        });
-        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
-        builder.show();
-    }
-
-    private void callGoogleLoginApi(String googleId, String email, String displayName, String avatarUrl) {
+    private void callGoogleLoginApi(String idToken, String displayName) {
         setLoading(true);
 
-        GoogleLoginRequest request = new GoogleLoginRequest(googleId, email, displayName, avatarUrl);
+        GoogleLoginRequest request = new GoogleLoginRequest(idToken);
         ApiClient.getApiService().loginWithGoogle(request).enqueue(new Callback<ApiResponse<AuthResponse>>() {
             @Override
             public void onResponse(@NonNull Call<ApiResponse<AuthResponse>> call, @NonNull Response<ApiResponse<AuthResponse>> response) {
@@ -225,7 +208,10 @@ public class LoginActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
                     AuthResponse authData = response.body().getData();
                     sessionManager.saveAuth(authData.getToken(), authData.getUser());
-                    Toast.makeText(LoginActivity.this, "Đăng nhập Google thành công! Chào mừng " + displayName, Toast.LENGTH_SHORT).show();
+                    String welcomeName = (authData.getUser() != null && !TextUtils.isEmpty(authData.getUser().getDisplayName()))
+                            ? authData.getUser().getDisplayName()
+                            : displayName;
+                    Toast.makeText(LoginActivity.this, "Đăng nhập Google thành công! Chào mừng " + welcomeName, Toast.LENGTH_SHORT).show();
                     navigateToHome();
                 } else {
                     String errorMsg = extractErrorMessage(response);
@@ -245,6 +231,15 @@ public class LoginActivity extends AppCompatActivity {
         if (binding == null) return;
         binding.btnLogin.setEnabled(!isLoading);
         binding.btnLogin.setText(isLoading ? "Đang đăng nhập..." : "Đăng nhập");
+    }
+
+    private void showForgotPasswordDialog() {
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(
+                this, com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog)
+                .setTitle("Khôi phục mật khẩu")
+                .setMessage("Hệ thống chưa hỗ trợ tự đặt lại mật khẩu qua Email. Bạn có thể đăng nhập bằng Google nếu đã liên kết tài khoản, hoặc liên hệ quản trị viên để được cấp lại mật khẩu.")
+                .setPositiveButton("Đã hiểu", null)
+                .show();
     }
 
     private String extractErrorMessage(Response<?> response) {
@@ -267,10 +262,131 @@ public class LoginActivity extends AppCompatActivity {
         return "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
     }
 
+    private void hideKeyboard() {
+        try {
+            View view = getCurrentFocus();
+            if (view != null) {
+                android.view.inputmethod.InputMethodManager imm =
+                        (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                }
+            }
+        } catch (Exception ignored) {}
+    }
+
     private void navigateToHome() {
+        hideKeyboard();
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private void showServerConfigDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Cấu hình kết nối Máy chủ");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int padding = (int) (18 * getResources().getDisplayMetrics().density);
+        layout.setPadding(padding, padding / 2, padding, padding / 2);
+
+        TextView infoText = new TextView(this);
+        infoText.setText("Địa chỉ Server Backend Node.js hiện tại:\n(Ví dụ trên mạng Wi-Fi: http://192.168.1.9:5000/)");
+        infoText.setTextColor(getResources().getColor(R.color.text_secondary, null));
+        infoText.setTextSize(13);
+        layout.addView(infoText);
+
+        final EditText etUrl = new EditText(this);
+        etUrl.setText(ApiClient.getBaseUrl());
+        etUrl.setHint("http://192.168.1.9:5000/");
+        etUrl.setTextColor(getResources().getColor(R.color.text_primary, null));
+        etUrl.setHintTextColor(getResources().getColor(R.color.text_secondary, null));
+        etUrl.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_URI);
+        layout.addView(etUrl);
+
+        final TextView tvPingResult = new TextView(this);
+        tvPingResult.setPadding(0, 16, 0, 8);
+        tvPingResult.setTextSize(13);
+        layout.addView(tvPingResult);
+
+        com.google.android.material.button.MaterialButton btnPing = new com.google.android.material.button.MaterialButton(this);
+        btnPing.setText("Kiểm tra kết nối tới Server");
+        btnPing.setBackgroundColor(getResources().getColor(R.color.spotify_surface, null));
+        btnPing.setTextColor(getResources().getColor(R.color.spotify_green, null));
+        btnPing.setOnClickListener(v -> {
+            String testUrl = etUrl.getText().toString().trim();
+            if (!testUrl.startsWith("http://") && !testUrl.startsWith("https://")) {
+                testUrl = "http://" + testUrl;
+            }
+            if (!testUrl.endsWith("/")) {
+                testUrl = testUrl + "/";
+            }
+            tvPingResult.setTextColor(getResources().getColor(R.color.spotify_green, null));
+            tvPingResult.setText("Đang kiểm tra kết nối tới " + testUrl + "...");
+
+            final String finalTestUrl = testUrl;
+            okhttp3.OkHttpClient testClient = new okhttp3.OkHttpClient.Builder()
+                    .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+                    .readTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+                    .build();
+
+            okhttp3.Request pingRequest = new okhttp3.Request.Builder()
+                    .url(finalTestUrl + "api/v1/health")
+                    .build();
+
+            testClient.newCall(pingRequest).enqueue(new okhttp3.Callback() {
+                @Override
+                public void onFailure(@NonNull okhttp3.Call call, @NonNull java.io.IOException e) {
+                    runOnUiThread(() -> {
+                        tvPingResult.setTextColor(android.graphics.Color.RED);
+                        tvPingResult.setText("❌ Không kết nối được: " + e.getMessage() + "\nHãy kiểm tra lại Wi-Fi và IP máy tính!");
+                    });
+                }
+
+                @Override
+                public void onResponse(@NonNull okhttp3.Call call, @NonNull okhttp3.Response response) {
+                    runOnUiThread(() -> {
+                        if (response.isSuccessful()) {
+                            tvPingResult.setTextColor(getResources().getColor(R.color.spotify_green, null));
+                            tvPingResult.setText("✅ Kết nối máy chủ thành công (200 OK)!");
+                        } else {
+                            tvPingResult.setTextColor(android.graphics.Color.YELLOW);
+                            tvPingResult.setText("⚠️ Máy chủ phản hồi mã: " + response.code());
+                        }
+                    });
+                }
+            });
+        });
+        layout.addView(btnPing);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Lưu và áp dụng", (dialog, which) -> {
+            String newUrl = etUrl.getText().toString().trim();
+            if (!newUrl.isEmpty()) {
+                if (!newUrl.startsWith("http://") && !newUrl.startsWith("https://")) {
+                    newUrl = "http://" + newUrl;
+                }
+                if (!newUrl.endsWith("/")) {
+                    newUrl = newUrl + "/";
+                }
+                sessionManager.setCustomServerUrl(newUrl);
+                ApiClient.resetApiService();
+                updateServerStatusText();
+                Toast.makeText(this, "Đã cập nhật Server URL: " + newUrl, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNeutralButton("Mặc định", (dialog, which) -> {
+            sessionManager.setCustomServerUrl(null);
+            ApiClient.resetApiService();
+            updateServerStatusText();
+            Toast.makeText(this, "Đã khôi phục địa chỉ Server tự động!", Toast.LENGTH_SHORT).show();
+        });
+
+        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
+        builder.show();
     }
 }

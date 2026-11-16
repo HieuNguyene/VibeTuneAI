@@ -7,10 +7,12 @@
     android:layout_margin="4dp"
     android:clickable="true"
     android:focusable="true"
+    android:stateListAnimator="@animator/btn_tactile_raise"
     app:cardBackgroundColor="@color/spotify_elevated"
     app:cardCornerRadius="@dimen/corner_radius_card"
-    app:cardElevation="0dp"
-    app:strokeWidth="0dp">
+    app:cardElevation="4dp"
+    app:strokeColor="@color/spotify_stroke"
+    app:strokeWidth="1dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

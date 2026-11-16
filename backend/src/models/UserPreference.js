@@ -5,6 +5,8 @@ const UserPreferenceSchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true, index: true },
     favoriteGenreIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Genre' }],
     favoriteArtistIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Artist' }],
+    favoriteAlbumIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Album' }],
+    favoritePlaylistIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Playlist' }],
     streamingQuality: {
       type: String,
       enum: ['low', 'normal', 'high', 'lossless'],

@@ -7,7 +7,7 @@
 > **Kiến trúc:** MongoDB (Modular 4-Tier Normalized Architecture) + Mongoose ODM  
 > **Backend:** Node.js + Express.js  
 > **Client:** Android Native (Java, MVVM, Room DB Offline Cache)  
-> **Lưu trữ Media & Cloud:** Firebase Storage & Firebase Auth  
+> **Lưu trữ & Phân phối Media:** Node.js Express Static Streaming Server (/uploads/audios) & Google OAuth  
 > **AI Engine:** Google Gemini API (Structured Criteria Recommendation & Playlist Generator)  
 
 ---
@@ -23,21 +23,26 @@ Hệ thống cơ sở dữ liệu được thiết kế theo mô hình **4 phân
 │ 1. MUSIC CATALOG MODULE                                                │
 │    ├── artists           (Danh ca sĩ, ban nhạc, xác thực)             │
 │    ├── albums            (Album phát hành, liên kết ca sĩ)             │
-│    ├── genres            (Thể loại nhạc, mã màu theme Spotify)        │
-│    └── songs             (Bài hát, audio URL, lyrics, mood, tempo)     │
+│    ├── genres            (Thể loại nhạc, mã màu theme VibeTune)        │
+│    └── songs             (Bài hát, audio URL, lyrics, mood, vector 768)│
 ├────────────────────────────────────────────────────────────────────────┤
 │ 2. USER & INTERACTION MODULE                                           │
 │    ├── users             (Tài khoản người dùng, phân quyền RBAC)       │
 │    ├── user_preferences  (Gu âm nhạc 1-1, cấu hình phát nhạc)         │
-│    └── user_favorites    (Junction table: danh sách bài hát yêu thích) │
+│    ├── user_favorites    (Junction table: danh sách bài hát yêu thích) │
+│    ├── user_interactions (Tín hiệu tương tác chi tiết cho recommender)│
+│    └── otp_verifications (Xác thực OTP số điện thoại đăng nhập)        │
 ├────────────────────────────────────────────────────────────────────────┤
 │ 3. PLAYLIST MODULE                                                     │
 │    ├── playlists         (Danh sách phát cá nhân & AI tạo)            │
 │    └── playlist_tracks   (Thứ tự track drag-and-drop trong playlist)   │
 ├────────────────────────────────────────────────────────────────────────┤
-│ 4. AI RECOMMENDATION & ANALYTICS MODULE                                │
+│ 4. AI RECOMMENDATION & REALTIME MODULE                                 │
 │    ├── listening_history (Nhật ký nghe nhạc chi tiết, duration, skip)  │
-│    └── ai_prompts_log    (Audit trail các prompt gửi Gemini AI)        │
+│    ├── listening_events  (Sự kiện nghe nhạc telemetry thời gian thực)  │
+│    ├── play_sessions     (Trạng thái phiên Mood Flow Recommender)      │
+│    ├── ai_prompts_log    (Audit trail các prompt gửi Gemini AI)        │
+│    └── notifications     (Hộp thư thông báo & realtime push alerts)   │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -53,7 +58,7 @@ Hệ thống cơ sở dữ liệu được thiết kế theo mô hình **4 phân
 
 ### 2.2. Chiến lược Tối ưu Truy vấn Tìm kiếm & Streaming
 - **Full-Text Search:** Tạo text index `{ title: "text" }` trên cả `songs` và `artists` để phục vụ thanh tìm kiếm tức thời trên Android (Search Debouncing 300ms).
-- **Phân tách Audio/Media:** MongoDB chỉ lưu trữ đường dẫn trực tiếp (Secure Firebase Storage URL hoặc CDN URL) và metadata kỹ thuật (duration, bitrate, format), không lưu trữ binary buffer (`GridFS`) vào DB để giảm tải I/O và tối ưu chi phí RAM của MongoDB Atlas.
+- **Phân tách Audio/Media:** MongoDB chỉ lưu trữ đường dẫn tương đối (Media Path) và metadata kỹ thuật (duration, bitrate, format), không lưu trữ binary buffer (`GridFS`) vào DB để giảm tải I/O và tối ưu chi phí RAM của MongoDB. Tệp âm thanh MP3 và ảnh bìa được lưu trữ trực tiếp trên máy chủ (`/uploads/audios/` và `/uploads/covers/`) và truyền phát qua máy chủ tĩnh Express hỗ trợ HTTP Range Requests.
 
 ### 2.3. Thiết kế Phục vụ AI Recommender Engine
 - Bảng `listening_history` lưu trữ tỉ mỉ 3 chỉ số quan trọng cho mô hình lọc cộng tác (Collaborative Filtering) và lọc theo nội dung (Content-based Filtering):
@@ -91,7 +96,7 @@ erDiagram
         string username
         string email
         string passwordHash
-        string firebaseUid
+        string googleId
         string displayName
         string avatarUrl
         string role
@@ -268,18 +273,23 @@ erDiagram
 | `_id` | ObjectId | Có | Auto | BSON ObjectId | Khóa chính |
 | `title` | String | Có | Không | Trim, Max 255 ký tự | Tên bài hát |
 | `artistId` | ObjectId | Có | Không | Ref: `Artist` | Ca sĩ chính |
+| `artistIds` | [ObjectId] | Không | `[]` | Ref: `Artist` | Danh sách ca sĩ tham gia |
+| `composerId` | ObjectId | Không | `null` | Ref: `Artist` | Nhạc sĩ sáng tác |
 | `featuredArtistIds`| [ObjectId] | Không | `[]` | Ref: `Artist` | Ca sĩ hợp tác (feat) |
 | `albumId` | ObjectId | Không | `null` | Ref: `Album` | Thuộc album (nếu có) |
 | `genreIds` | [ObjectId] | Có | `[]` | Ref: `Genre` | Danh sách thể loại liên quan |
 | `duration` | Number | Có | Không | Min 1 (giây) | Thời lượng bài hát tính bằng giây |
-| `audioUrl` | String | Có | Không | Valid URL (Firebase/CDN) | Đường dẫn file MP3/AAC phát trực tuyến |
+| `audioUrl` | String | Có | Không | Valid URL / Local Path | Đường dẫn tệp MP3 phát trực tuyến (/uploads/audios/...) |
 | `coverImageUrl` | String | Không | `""` | Valid URL | Ảnh bìa bài hát |
 | `lyrics` | String | Không | `""` | Format LRC/Plain Text | Lời bài hát kèm timestamp hoặc text |
-| `mood` | [String] | Không | `[]` | Enum: `chill`, `energetic`, `sad`, `happy`, `focus`, `romantic`, `party` | Phục vụ AI đề xuất theo tâm trạng |
+| `moods` | [String] | Không | `[]` | Mảng tâm trạng chuẩn hóa | Phục vụ AI đề xuất theo tâm trạng |
+| `activities` | [String] | Không | `[]` | Mảng hoạt động (gym, study, relax) | Phục vụ AI gợi ý ngữ cảnh |
 | `tempo` | String | Không | `"medium"`| Enum: `slow`, `medium`, `fast` | Tốc độ bài hát |
 | `playsCount` | Number | Có | `0` | Min 0 | Tổng số lượt nghe |
 | `likesCount` | Number | Có | `0` | Min 0 | Tổng số lượt thích |
 | `isPublic` | Boolean | Có | `true` | - | Trạng thái hiển thị công khai |
+| `embedding` | [Number] | Không | `[]` | Mảng float 768 chiều (Gemini) | Vector ngữ nghĩa phục vụ Vector Search & Cosine Similarity |
+| `semanticText`| String | Không | `""` | Text mô tả tổng hợp | Phục vụ embedding ngữ nghĩa |
 | `createdAt` | Date | Có | `Date.now` | - | Ngày phát hành/upload |
 
 *Chỉ mục (Indexes):*
@@ -288,6 +298,7 @@ erDiagram
 - `{ albumId: 1 }` — Lấy danh sách track trong album.
 - `{ genreIds: 1 }` — Lọc bài hát theo thể loại.
 - `{ playsCount: -1 }` — Bảng xếp hạng bài hát nghe nhiều nhất.
+- `{ isPublic: 1, playsCount: -1 }` — Truy vấn bài hát công khai phổ biến.
 - `{ createdAt: -1 }` — Danh sách bài hát mới phát hành.
 
 ---
@@ -301,7 +312,7 @@ erDiagram
 | `username` | String | Có | Không | Unique, lowercase, alphanumeric | Tên đăng nhập |
 | `email` | String | Có | Không | Unique, lowercase, Email format | Email xác thực |
 | `passwordHash` | String | Không | - | `select: false` | Mật khẩu đã hash bằng bcrypt |
-| `firebaseUid` | String | Không | `null` | Sparse, Unique | UID liên kết từ Firebase Authentication |
+| `googleId` | String | Không | `null` | Sparse, Unique | Google ID xác thực qua OAuth |
 | `displayName` | String | Có | Không | Trim, Max 100 ký tự | Tên hiển thị trên giao diện |
 | `avatarUrl` | String | Không | `""` | Valid URL | Ảnh đại diện người dùng |
 | `role` | String | Có | `"user"` | Enum: `user`, `artist`, `admin` | Phân quyền truy cập API |
@@ -311,7 +322,7 @@ erDiagram
 *Chỉ mục (Indexes):*
 - `{ email: 1 }` (Unique).
 - `{ username: 1 }` (Unique).
-- `{ firebaseUid: 1 }` (Sparse, Unique).
+- `{ googleId: 1 }` (Sparse, Unique).
 
 ---
 
@@ -560,7 +571,7 @@ const UserSchema = new mongoose.Schema(
     username: { type: String, required: true, unique: true, lowercase: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, select: false },
-    firebaseUid: { type: String, unique: true, sparse: true, default: null },
+    googleId: { type: String, unique: true, sparse: true, default: null },
     displayName: { type: String, required: true, trim: true, maxlength: 100 },
     avatarUrl: { type: String, default: '' },
     role: { type: String, enum: ['user', 'artist', 'admin'], default: 'user' },
@@ -726,6 +737,95 @@ const AiPromptLogSchema = new mongoose.Schema(
 AiPromptLogSchema.index({ userId: 1, createdAt: -1 });
 
 module.exports = mongoose.model('AiPromptLog', AiPromptLogSchema);
+```
+
+---
+
+### 6.12. Collection: `listening_events` (Sự kiện Nghe Telemetry)
+Lưu vết từng tương tác nghe chi tiết phục vụ Mood Flow và phân tích hành vi người nghe.
+```javascript
+const ListeningEventSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  sessionId: { type: String, default: null, index: true },
+  eventType: { 
+    type: String, 
+    enum: ['play', 'pause', 'seek', 'skip', 'complete', 'like', 'unlike'], 
+    required: true 
+  },
+  targetTrackId: { type: mongoose.Schema.Types.ObjectId, ref: 'Song', required: true, index: true },
+  positionSeconds: { type: Number, default: 0 },
+  durationSeconds: { type: Number, default: 0 },
+  source: { type: String, default: 'app' },
+  timestamp: { type: Date, default: Date.now, index: true }
+});
+ListeningEventSchema.index({ userId: 1, timestamp: -1 });
+module.exports = mongoose.model('ListeningEvent', ListeningEventSchema);
+```
+
+### 6.13. Collection: `play_sessions` (Phiên Mood Flow Recommender)
+Theo dõi trạng thái phiên nghe nhạc liên tục, cung bài hát tiếp theo dựa trên tâm trạng thực tế.
+```javascript
+const PlaySessionSchema = new mongoose.Schema({
+  sessionId: { type: String, required: true, unique: true, index: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  initialMood: { type: String, default: 'neutral' },
+  targetMood: { type: String, default: 'neutral' },
+  currentMood: { type: String, default: 'neutral' },
+  energyLevel: { type: Number, default: 0.5 },
+  recentTrackIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Song' }],
+  dislikedTrackIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Song' }],
+  queue: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Song' }],
+  currentTrackIndex: { type: Number, default: 0 },
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+module.exports = mongoose.model('PlaySession', PlaySessionSchema);
+```
+
+### 6.14. Collection: `user_interactions` (Tín hiệu Tương tác Đánh giá Gu Âm nhạc)
+```javascript
+const UserInteractionSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  songId: { type: mongoose.Schema.Types.ObjectId, ref: 'Song', required: true, index: true },
+  interactionType: { type: String, enum: ['play', 'like', 'skip', 'share', 'complete'], required: true },
+  weight: { type: Number, default: 1 },
+  createdAt: { type: Date, default: Date.now, index: true }
+});
+UserInteractionSchema.index({ userId: 1, songId: 1 });
+module.exports = mongoose.model('UserInteraction', UserInteractionSchema);
+```
+
+### 6.15. Collection: `notifications` (Hộp thư & Thông báo Đẩy Realtime)
+```javascript
+const NotificationSchema = new mongoose.Schema({
+  recipientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
+  type: { 
+    type: String, 
+    enum: ['admin_alert', 'system', 'new_release', 'playlist_recommendation'], 
+    default: 'system' 
+  },
+  title: { type: String, required: true },
+  body: { type: String, required: true },
+  data: { type: mongoose.Schema.Types.Mixed, default: {} },
+  readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  createdAt: { type: Date, default: Date.now, index: true }
+});
+NotificationSchema.index({ recipientId: 1, createdAt: -1 });
+module.exports = mongoose.model('Notification', NotificationSchema);
+```
+
+### 6.16. Collection: `otp_verifications` (Xác thực OTP Số điện thoại)
+```javascript
+const OtpVerificationSchema = new mongoose.Schema({
+  phoneNumber: { type: String, required: true, index: true },
+  otpHash: { type: String, required: true },
+  expiresAt: { type: Date, required: true, index: { expires: 0 } },
+  verified: { type: Boolean, default: false },
+  attempts: { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now }
+});
+module.exports = mongoose.model('OtpVerification', OtpVerificationSchema);
 ```
 
 ---

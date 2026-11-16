@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+import java.util.Locale;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -60,6 +61,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         binding = ActivityRegisterBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        com.example.spotifyclone.util.ThemeManager.applySystemBarsAppearance(this);
 
         // Bù trừ an toàn thanh trạng thái trên đỉnh và thanh điều hướng ở đáy
         com.example.spotifyclone.util.WindowInsetHelper.applySystemBarInsets(binding.getRoot(), true, true);
@@ -69,11 +71,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void initGoogleSignIn() {
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .requestProfile()
-                .build();
-        googleSignInClient = GoogleSignIn.getClient(this, gso);
+        googleSignInClient = GoogleSignInHelper.createClient(this);
 
         googleSignInLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -88,8 +86,7 @@ public class RegisterActivity extends AppCompatActivity {
                             Toast.makeText(this, "Không nhận được tài khoản Google", Toast.LENGTH_SHORT).show();
                         }
                     } catch (ApiException e) {
-                        // Trình giả lập chưa đăng nhập Google Play hoặc chưa cấu hình OAuth GCP -> mở hộp thoại đăng nhập giả lập thông minh
-                        showGoogleFallbackDialog();
+                        GoogleSignInHelper.showUnavailableDialog(this, "Mã lỗi Play Services: " + e.getStatusCode());
                     }
                 }
         );
@@ -102,14 +99,18 @@ public class RegisterActivity extends AppCompatActivity {
         // Chuyển về Đăng nhập
         binding.tvGoToLogin.setOnClickListener(v -> finish());
 
-        // Đăng nhập Google
+        // Đăng nhập Google (yêu cầu Google ID Token RS256 hợp lệ)
         binding.btnContinueGoogle.setOnClickListener(v -> {
+            if (!GoogleSignInHelper.isConfigured(this)) {
+                GoogleSignInHelper.showUnavailableDialog(this, "Chưa cấu hình google_web_client_id");
+                return;
+            }
             try {
                 googleSignInClient.signOut();
                 Intent signInIntent = googleSignInClient.getSignInIntent();
                 googleSignInLauncher.launch(signInIntent);
             } catch (Exception e) {
-                showGoogleFallbackDialog();
+                GoogleSignInHelper.showUnavailableDialog(this, e.getMessage());
             }
         });
 
@@ -287,7 +288,7 @@ public class RegisterActivity extends AppCompatActivity {
             binding.tilRegUsername.setError(null);
         }
 
-        String baseUsername = email.contains("@") ? email.split("@")[0].replaceAll("[^a-zA-Z0-9_]", "").toLowerCase() : displayName.toLowerCase();
+        String baseUsername = email.contains("@") ? email.split("@")[0].replaceAll("[^a-zA-Z0-9_]", "").toLowerCase(Locale.ROOT) : displayName.toLowerCase(Locale.ROOT);
         if (baseUsername.length() < 3) {
             baseUsername = "user_" + (System.currentTimeMillis() % 100000);
         }
@@ -317,56 +318,30 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void handleGoogleSuccess(GoogleSignInAccount account) {
-        String googleId = account.getId() != null ? account.getId() : "google_" + System.currentTimeMillis();
-        String email = account.getEmail();
-        String displayName = account.getDisplayName() != null ? account.getDisplayName() : "Google User";
-        String avatarUrl = account.getPhotoUrl() != null ? account.getPhotoUrl().toString() : "";
-
-        callGoogleLoginApi(googleId, email, displayName, avatarUrl);
+        String idToken = GoogleSignInHelper.extractVerifiedIdToken(account);
+        if (TextUtils.isEmpty(idToken)) {
+            GoogleSignInHelper.showUnavailableDialog(this, "Không nhận được Google ID Token từ Google Play Services");
+            return;
+        }
+        String displayName = account.getDisplayName() != null ? account.getDisplayName() : "Bạn";
+        callGoogleLoginApi(idToken, displayName);
     }
 
-    private void showGoogleFallbackDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Đăng nhập với Google");
-        builder.setMessage("Nhập email Google của bạn để liên kết / đăng ký nhanh tài khoản:");
-
-        final EditText inputEmail = new EditText(this);
-        inputEmail.setHint("example@gmail.com");
-        inputEmail.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
-        inputEmail.setTextColor(getResources().getColor(R.color.white));
-        inputEmail.setHintTextColor(getResources().getColor(R.color.text_secondary));
-
-        LinearLayout container = new LinearLayout(this);
-        container.setOrientation(LinearLayout.VERTICAL);
-        int padding = (int) (16 * getResources().getDisplayMetrics().density);
-        container.setPadding(padding, padding / 2, padding, padding / 2);
-        container.addView(inputEmail);
-
-        builder.setView(container);
-        builder.setPositiveButton("Đăng nhập", (dialog, which) -> {
-            String email = inputEmail.getText().toString().trim();
-            if (TextUtils.isEmpty(email)) {
-                email = "user" + (System.currentTimeMillis() % 10000) + "@gmail.com";
-            }
-            String googleId = "gid_" + Math.abs(email.hashCode());
-            String displayName = email.contains("@") ? email.split("@")[0] : "Google User";
-            callGoogleLoginApi(googleId, email, displayName, "");
-        });
-        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
-        builder.show();
-    }
-
-    private void callGoogleLoginApi(String googleId, String email, String displayName, String avatarUrl) {
+    private void callGoogleLoginApi(String idToken, String displayName) {
         setLoading(true);
 
-        GoogleLoginRequest request = new GoogleLoginRequest(googleId, email, displayName, avatarUrl);
+        GoogleLoginRequest request = new GoogleLoginRequest(idToken);
         ApiClient.getApiService().loginWithGoogle(request).enqueue(new Callback<ApiResponse<AuthResponse>>() {
             @Override
             public void onResponse(@NonNull Call<ApiResponse<AuthResponse>> call, @NonNull Response<ApiResponse<AuthResponse>> response) {
                 setLoading(false);
 
                 if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
-                    onAuthSuccess(response.body().getData(), displayName);
+                    AuthResponse authData = response.body().getData();
+                    String welcomeName = (authData.getUser() != null && !TextUtils.isEmpty(authData.getUser().getDisplayName()))
+                            ? authData.getUser().getDisplayName()
+                            : displayName;
+                    onAuthSuccess(authData, welcomeName);
                 } else {
                     String errorMsg = extractErrorMessage(response);
                     Toast.makeText(RegisterActivity.this, errorMsg, Toast.LENGTH_LONG).show();
@@ -389,10 +364,24 @@ public class RegisterActivity extends AppCompatActivity {
 
         Toast.makeText(this, "Đăng ký thành công! Chào mừng " + displayName, Toast.LENGTH_SHORT).show();
 
+        hideKeyboard();
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private void hideKeyboard() {
+        try {
+            View view = getCurrentFocus();
+            if (view != null) {
+                android.view.inputmethod.InputMethodManager imm =
+                        (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                }
+            }
+        } catch (Exception ignored) {}
     }
 
     private void setLoading(boolean isLoading) {

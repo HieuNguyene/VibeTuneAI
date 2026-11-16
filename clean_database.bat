@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 title Vibe Music - Xoa Sach Du Lieu Ao
 echo ====================================================================
 echo   XOA SACH TOAN BO DU LIEU AO TRONG MONGODB LOCAL

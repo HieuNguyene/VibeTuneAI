@@ -3,6 +3,7 @@ const Song = require('../models/Song');
 const ListeningHistory = require('../models/ListeningHistory');
 const UserFavorite = require('../models/UserFavorite');
 const UserPreference = require('../models/UserPreference');
+const { formatSongArtistFields } = require('../utils/songFormatter');
 
 class RecommendationEngine {
   /**
@@ -18,13 +19,14 @@ class RecommendationEngine {
     // 1. Lấy dữ liệu sở thích (Preferences) và Lịch sử nghe (History) trong 30 ngày
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-    const [preferences, favorites, historyLogs] = await Promise.all([
+    const [preferences, rawFavorites, historyLogs] = await Promise.all([
       UserPreference.findOne({ userId }).lean(),
-      UserFavorite.find({ userId }).select('songId').lean(),
+      UserFavorite.find({ userId }).populate('songId', 'artistId genreIds').lean(),
       ListeningHistory.find({ userId, timestamp: { $gte: thirtyDaysAgo } }).populate('songId').lean()
     ]);
 
-    const likedSongIds = new Set(favorites.map((f) => f.songId.toString()));
+    const favorites = rawFavorites.filter((f) => f.songId != null);
+    const likedSongIds = new Set(favorites.map((f) => String(f.songId._id || f.songId)));
 
     // 2. Cold Start: Nếu chưa có lịch sử nghe nhạc
     if (historyLogs.length < 3 && (!preferences || preferences.favoriteGenreIds.length === 0)) {
@@ -42,10 +44,20 @@ class RecommendationEngine {
       });
     }
 
-    // Điểm từ danh sách yêu thích (+4 điểm cho mỗi bài thích)
-    // Tín hiệu quan trọng nhất của người dùng
+    // Điểm từ danh sách yêu thích (+2.5 điểm cho nghệ sĩ, +2.0 điểm cho thể loại của bài đã thích)
     for (const fav of favorites) {
-      // Trọng số đã gián tiếp thể hiện
+      const favSong = fav.songId;
+      if (!favSong || typeof favSong !== 'object') continue;
+      const favArtistId = favSong.artistId?.toString();
+      if (favArtistId) {
+        artistScores.set(favArtistId, (artistScores.get(favArtistId) || 0) + 2.5);
+      }
+      if (Array.isArray(favSong.genreIds)) {
+        favSong.genreIds.forEach((gid) => {
+          const gIdStr = gid.toString();
+          genreScores.set(gIdStr, (genreScores.get(gIdStr) || 0) + 2.0);
+        });
+      }
     }
 
     // Điểm từ Listening History (Tần suất, thời lượng, hoàn thành, bỏ qua)
@@ -72,7 +84,12 @@ class RecommendationEngine {
 
     // 4. Lấy danh sách ứng viên bài hát từ MongoDB
     const candidateSongs = await Song.find({ isPublic: true })
+      .select('-embedding')
       .populate('artistId', 'name avatarUrl isVerified')
+      .populate('featuredArtistIds', 'name avatarUrl isVerified')
+      .populate('artistIds', 'name avatarUrl isVerified')
+      .populate('composerId', 'name avatarUrl isVerified')
+      .populate('composerIds', 'name avatarUrl isVerified')
       .populate('albumId', 'title coverImageUrl')
       .populate('genreIds', 'name colorCode')
       .lean();
@@ -105,7 +122,7 @@ class RecommendationEngine {
       finalScore += Math.log10(song.playsCount + 1) * 0.8;
 
       return {
-        ...song,
+        ...formatSongArtistFields(song),
         isLiked,
         recommendationScore: parseFloat(finalScore.toFixed(2))
       };
@@ -120,17 +137,29 @@ class RecommendationEngine {
   /**
    * Cold Start: Gợi ý cho người dùng mới đăng ký hoặc khách vãng lai
    */
-  static async getColdStartRecommendations(limit = 15, likedSongIds = new Set()) {
-    const songs = await Song.find({ isPublic: true })
-      .sort({ playsCount: -1, likesCount: -1 })
-      .limit(limit)
+  static async getColdStartRecommendations(limit = 15, likedSongIds = new Set(), excludeIds = []) {
+    const filter = { isPublic: true };
+    if (excludeIds.length > 0) {
+      filter._id = { $nin: excludeIds };
+    }
+    const songs = await Song.find(filter)
+      .select('-embedding')
+      .sort({ likesCount: -1, playsCount: -1 })
+      .limit(limit * 2)
       .populate('artistId', 'name avatarUrl isVerified')
+      .populate('featuredArtistIds', 'name avatarUrl isVerified')
+      .populate('artistIds', 'name avatarUrl isVerified')
+      .populate('composerId', 'name avatarUrl isVerified')
+      .populate('composerIds', 'name avatarUrl isVerified')
       .populate('albumId', 'title coverImageUrl')
       .populate('genreIds', 'name colorCode')
       .lean();
 
-    return songs.map((song) => ({
-      ...song,
+    // Xáo trộn nhẹ các ca khúc chất lượng cao để mang đến cảm giác khám phá
+    const shuffled = songs.sort(() => Math.random() - 0.5);
+
+    return shuffled.slice(0, limit).map((song) => ({
+      ...formatSongArtistFields(song),
       isLiked: likedSongIds.has(song._id.toString()),
       recommendationScore: 1.0
     }));

@@ -61,7 +61,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📱 Thiết bị này (Loa điện thoại)"
+                android:text="Thiết bị này (Loa điện thoại)"
                 android:textAppearance="@style/TextAppearance.Spotify.Body"
                 android:textColor="@color/spotify_green"
                 android:textSize="15sp"
@@ -114,7 +114,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🎧 Tai nghe / Loa Bluetooth"
+                android:text="Tai nghe / Loa Bluetooth"
                 android:textAppearance="@style/TextAppearance.Spotify.Body"
                 android:textSize="15sp"
                 android:textStyle="bold" />

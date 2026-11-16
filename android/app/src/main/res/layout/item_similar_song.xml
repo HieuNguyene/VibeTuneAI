@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/spacing_16dp"
+    android:paddingTop="@dimen/spacing_8dp"
+    android:paddingEnd="@dimen/spacing_16dp"
+    android:paddingBottom="@dimen/spacing_8dp">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivSimilarArt"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.CornerSmall"
+        tools:srcCompat="@android:drawable/ic_menu_gallery" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_12dp"
+        android:layout_marginEnd="@dimen/spacing_8dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvSimilarTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textAppearance="@style/TextAppearance.Spotify.Body"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:text="Tên bài hát" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvSimilarArtist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxWidth="160dp"
+                android:singleLine="true"
+                android:textAppearance="@style/TextAppearance.Spotify.Caption"
+                android:textColor="@color/text_secondary"
+                tools:text="Tên ca sĩ" />
+
+            <TextView
+                android:id="@+id/tvSimilarBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_similarity_pill"
+                android:paddingStart="6dp"
+                android:paddingTop="1dp"
+                android:paddingEnd="6dp"
+                android:paddingBottom="1dp"
+                android:textColor="@color/spotify_green"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                tools:text="98% tương đồng" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btnSimilarPlay"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Phát nhạc"
+        android:src="@drawable/ic_play_arrow"
+        app:tint="@color/spotify_green" />
+
+</LinearLayout>

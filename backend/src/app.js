@@ -16,7 +16,7 @@ app.use(
   cors({
     origin: '*', // Cho phép mọi kết nối từ Android Emulator (10.0.2.2), thiết bị thật và Web
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-timezone-offset']
   })
 );
 
@@ -28,9 +28,9 @@ if (config.nodeEnv !== 'test') {
   app.use(morgan(config.nodeEnv === 'development' ? 'dev' : 'combined'));
 }
 
-// Body Parsing Middlewares
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Body Parsing Middlewares (Hỗ trợ tải tệp âm thanh và ảnh bìa chất lượng cao)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // General Rate Limiter
 app.use('/api', apiLimiter);
@@ -38,6 +38,9 @@ app.use('/api', apiLimiter);
 // Mount API Endpoints (v1)
 app.use('/api/v1', routes);
 app.use('/api', routes); // Alias hỗ trợ cả /api và /api/v1
+app.use('/events', require('./routes/eventRoutes')); // Hỗ trợ trực tiếp POST /events theo đặc tả Skill
+app.use('/interactions', require('./routes/eventRoutes')); // Hỗ trợ trực tiếp POST /interactions
+app.use('/player', require('./routes/playerRoutes')); // Hỗ trợ trực tiếp POST /player/session, GET /player/next theo đặc tả Mood Flow
 
 // Web Admin Database Visualizer Route
 app.get(['/admin', '/db', '/dashboard'], (req, res) => {

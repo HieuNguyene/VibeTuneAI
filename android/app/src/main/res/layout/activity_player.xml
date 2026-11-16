@@ -47,7 +47,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:tint="@color/white" />
+            app:tint="@color/icon_primary" />
 
         <LinearLayout
             android:id="@+id/layoutTopHeaderInfo"
@@ -97,7 +97,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:tint="@color/white" />
+            app:tint="@color/icon_primary" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -147,81 +147,17 @@
                     app:shapeAppearanceOverlay="@style/ShapeAppearance.Spotify.AlbumArt"
                     tools:srcCompat="@android:drawable/ic_menu_gallery" />
 
-                <!-- LYRICS OVERLAY CONTAINER (Toggled via Menu or Swipe) -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardLyricsContainer"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:elevation="14dp"
-                    android:visibility="gone"
-                    app:cardBackgroundColor="#242424"
-                    app:cardCornerRadius="@dimen/corner_radius_album_art"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="#331DB954"
-                    app:layout_constraintTop_toTopOf="@id/ivPlayerAlbumArt"
-                    app:layout_constraintBottom_toBottomOf="@id/ivPlayerAlbumArt"
-                    app:layout_constraintStart_toStartOf="@id/ivPlayerAlbumArt"
-                    app:layout_constraintEnd_toEndOf="@id/ivPlayerAlbumArt">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:padding="@dimen/spacing_16dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:src="@drawable/ic_lyrics"
-                                app:tint="@color/spotify_green" />
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/spacing_8dp"
-                                android:layout_weight="1"
-                                android:text="LỜI BÀI HÁT"
-                                android:textColor="@color/spotify_green"
-                                android:textSize="13sp"
-                                android:textStyle="bold"
-                                android:letterSpacing="0.08" />
-
-                            <ImageButton
-                                android:id="@+id/btnCloseLyrics"
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:background="?attr/selectableItemBackgroundBorderless"
-                                android:src="@drawable/ic_chevron_down"
-                                app:tint="@color/text_secondary" />
-                        </LinearLayout>
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/rvLyricsOverlay"
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1"
-                            android:layout_marginTop="8dp"
-                            android:overScrollMode="never"
-                            android:scrollbars="none" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- TRACK DETAILS & FAVORITE BUTTON -->
+                <!-- TRACK DETAILS & FAVORITE / DISLIKE BUTTONS -->
                 <LinearLayout
                     android:id="@+id/layoutPlayerTrackInfo"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/spacing_24dp"
                     android:layout_marginTop="@dimen/spacing_24dp"
-                    android:layout_marginEnd="@dimen/spacing_16dp"
+                    android:layout_marginEnd="@dimen/spacing_12dp"
                     android:orientation="vertical"
-                    app:layout_constraintEnd_toStartOf="@id/btnPlayerFavorite"
+                    app:layout_constraintEnd_toStartOf="@id/layoutLikeDislike"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/ivPlayerAlbumArt">
 
@@ -247,21 +183,106 @@
                         android:textAppearance="@style/TextAppearance.Spotify.BodySecondary"
                         android:textSize="15sp"
                         tools:text="Sơn Tùng M-TP" />
+
+                    <!-- Mood Flow Reason Banner -->
+                    <LinearLayout
+                        android:id="@+id/layoutMoodFlowReason"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <ImageView
+                            android:id="@+id/ivMoodFlowReasonIcon"
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_assistant_wave"
+                            app:tint="@color/spotify_green" />
+
+                        <TextView
+                            android:id="@+id/tvMoodFlowReason"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:textColor="@color/spotify_green"
+                            android:textSize="12sp"
+                            android:textStyle="italic"
+                            tools:text="Giai điệu dịu êm, giảm dần nhịp độ để bạn dễ dàng thư giãn" />
+                    </LinearLayout>
                 </LinearLayout>
 
-                <ImageButton
-                    android:id="@+id/btnPlayerFavorite"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                <LinearLayout
+                    android:id="@+id/layoutLikeDislike"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginEnd="@dimen/spacing_20dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Like Track"
-                    android:padding="@dimen/spacing_8dp"
-                    android:src="@drawable/ic_favorite_border"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
                     app:layout_constraintBottom_toBottomOf="@id/layoutPlayerTrackInfo"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@id/layoutPlayerTrackInfo"
-                    app:tint="@color/text_secondary" />
+                    app:layout_constraintTop_toTopOf="@id/layoutPlayerTrackInfo">
+
+                    <ImageButton
+                        android:id="@+id/btnPlayerDislike"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Dislike Track"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_thumb_down"
+                        app:tint="@color/text_secondary" />
+
+                    <ImageButton
+                        android:id="@+id/btnPlayerFavorite"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_marginStart="2dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Like Track"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_favorite_border"
+                        app:tint="@color/text_secondary" />
+                </LinearLayout>
+
+                <!-- MOOD FLOW ARC SELECTOR PILL -->
+                <LinearLayout
+                    android:id="@+id/btnMoodFlowArcSelector"
+                    style="@style/Widget.Spotify.Chip.Raised"
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:layout_marginStart="@dimen/spacing_24dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_pill_inactive"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/layoutPlayerTrackInfo">
+
+                    <ImageView
+                        android:id="@+id/ivMoodFlowDot"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@drawable/ic_assistant_wave"
+                        app:tint="@color/spotify_green" />
+
+                    <TextView
+                        android:id="@+id/tvMoodFlowArcName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text="Mood Flow • Ổn định"
+                        android:textColor="@color/spotify_green"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
                 <!-- CUSTOM SEEKBAR & TIMESTAMPS -->
                 <SeekBar
@@ -269,7 +290,7 @@
                     android:layout_width="0dp"
                     android:layout_height="@dimen/seekbar_height"
                     android:layout_marginStart="@dimen/spacing_16dp"
-                    android:layout_marginTop="@dimen/spacing_16dp"
+                    android:layout_marginTop="@dimen/spacing_12dp"
                     android:layout_marginEnd="@dimen/spacing_16dp"
                     android:max="1000"
                     android:paddingStart="@dimen/spacing_8dp"
@@ -280,7 +301,7 @@
                     android:thumb="@drawable/seekbar_thumb"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/layoutPlayerTrackInfo" />
+                    app:layout_constraintTop_toBottomOf="@id/btnMoodFlowArcSelector" />
 
                 <TextView
                     android:id="@+id/tvCurrentTimestamp"
@@ -304,46 +325,61 @@
                     app:layout_constraintTop_toBottomOf="@id/playerSeekBar"
                     tools:text="4:05" />
 
-                <!-- PLAYBACK CONTROL BUTTONS -->
+                <!-- PLAYBACK CONTROL BUTTONS (-10s / PlayPause / +30s + Speed Selector) -->
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/layoutPlaybackControls"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_12dp"
-                    android:paddingStart="@dimen/spacing_16dp"
-                    android:paddingEnd="@dimen/spacing_16dp"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
                     app:layout_constraintTop_toBottomOf="@id/tvCurrentTimestamp">
 
                     <!-- Shuffle -->
                     <ImageButton
                         android:id="@+id/btnShuffle"
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="Shuffle"
-                        android:padding="@dimen/spacing_8dp"
+                        android:contentDescription="Phát ngẫu nhiên"
+                        android:padding="7dp"
                         android:src="@drawable/ic_shuffle"
-                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintBottom_toBottomOf="@id/btnPlayPause"
                         app:layout_constraintEnd_toStartOf="@id/btnPrevious"
                         app:layout_constraintHorizontal_chainStyle="spread_inside"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/btnPlayPause"
                         app:tint="@color/text_secondary" />
 
                     <!-- Previous -->
                     <ImageButton
                         android:id="@+id/btnPrevious"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="Previous Track"
-                        android:padding="@dimen/spacing_8dp"
+                        android:contentDescription="Bài trước"
+                        android:padding="6dp"
                         android:src="@drawable/ic_skip_previous"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toStartOf="@id/btnPlayPause"
+                        app:layout_constraintBottom_toBottomOf="@id/btnPlayPause"
+                        app:layout_constraintEnd_toStartOf="@id/btnRewind10s"
                         app:layout_constraintStart_toEndOf="@id/btnShuffle"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:tint="@color/white" />
+                        app:layout_constraintTop_toTopOf="@id/btnPlayPause"
+                        app:tint="@color/icon_primary" />
+
+                    <!-- Rewind 10s (Left of Play/Pause) -->
+                    <ImageButton
+                        android:id="@+id/btnRewind10s"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Tua lùi 10 giây"
+                        android:padding="7dp"
+                        android:src="@drawable/ic_replay_10"
+                        app:layout_constraintBottom_toBottomOf="@id/btnPlayPause"
+                        app:layout_constraintEnd_toStartOf="@id/btnPlayPause"
+                        app:layout_constraintStart_toEndOf="@id/btnPrevious"
+                        app:layout_constraintTop_toTopOf="@id/btnPlayPause"
+                        app:tint="@color/icon_primary" />
 
                     <!-- Play / Pause Main Floating Button -->
                     <ImageButton
@@ -351,45 +387,96 @@
                         android:layout_width="@dimen/btn_play_pause_size"
                         android:layout_height="@dimen/btn_play_pause_size"
                         android:background="@drawable/bg_circle_white_play_button"
-                        android:contentDescription="Play Pause Button"
+                        android:contentDescription="Phát hoặc tạm dừng"
                         android:elevation="6dp"
                         android:padding="@dimen/spacing_16dp"
                         android:src="@drawable/ic_play_arrow"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toStartOf="@id/btnNext"
-                        app:layout_constraintStart_toEndOf="@id/btnPrevious"
+                        android:stateListAnimator="@animator/btn_tactile_raise"
+                        app:layout_constraintEnd_toStartOf="@id/btnForward30s"
+                        app:layout_constraintStart_toEndOf="@id/btnRewind10s"
                         app:layout_constraintTop_toTopOf="parent"
                         app:tint="@color/black" />
+
+                    <!-- Forward 30s (Right of Play/Pause) -->
+                    <ImageButton
+                        android:id="@+id/btnForward30s"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Tua tới 30 giây"
+                        android:padding="7dp"
+                        android:src="@drawable/ic_forward_30"
+                        app:layout_constraintBottom_toBottomOf="@id/btnPlayPause"
+                        app:layout_constraintEnd_toStartOf="@id/btnNext"
+                        app:layout_constraintStart_toEndOf="@id/btnPlayPause"
+                        app:layout_constraintTop_toTopOf="@id/btnPlayPause"
+                        app:tint="@color/icon_primary" />
 
                     <!-- Next -->
                     <ImageButton
                         android:id="@+id/btnNext"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="Next Track"
-                        android:padding="@dimen/spacing_8dp"
+                        android:contentDescription="Bài tiếp theo"
+                        android:padding="6dp"
                         android:src="@drawable/ic_skip_next"
-                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintBottom_toBottomOf="@id/btnPlayPause"
                         app:layout_constraintEnd_toStartOf="@id/btnRepeat"
-                        app:layout_constraintStart_toEndOf="@id/btnPlayPause"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:tint="@color/white" />
+                        app:layout_constraintStart_toEndOf="@id/btnForward30s"
+                        app:layout_constraintTop_toTopOf="@id/btnPlayPause"
+                        app:tint="@color/icon_primary" />
 
                     <!-- Repeat -->
                     <ImageButton
                         android:id="@+id/btnRepeat"
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="Repeat"
-                        android:padding="@dimen/spacing_8dp"
+                        android:contentDescription="Lặp lại"
+                        android:padding="7dp"
                         android:src="@drawable/ic_repeat"
-                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintBottom_toBottomOf="@id/btnPlayPause"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toEndOf="@id/btnNext"
-                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/btnPlayPause"
                         app:tint="@color/text_secondary" />
+
+                    <!-- Playback Speed Selector Pill (matching Web Admin: 0.5x..2.0x, default 1.0x) -->
+                    <LinearLayout
+                        android:id="@+id/btnPlaybackSpeed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="34dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_pill_inactive"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/btnPlayPause">
+
+                        <ImageView
+                            android:id="@+id/ivPlaybackSpeedIcon"
+                            android:layout_width="15dp"
+                            android:layout_height="15dp"
+                            android:src="@drawable/ic_speed"
+                            app:tint="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvPlaybackSpeed"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="Tốc độ 1.0x"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -413,14 +500,14 @@
                 <!-- LYRICS PEEK / HINT BAR (Center between Devices and Queue) -->
                 <LinearLayout
                     android:id="@+id/layoutLyricsPeek"
+                    style="@style/Widget.Spotify.Chip.Raised"
                     android:layout_width="wrap_content"
-                    android:layout_height="36dp"
+                    android:layout_height="38dp"
                     android:gravity="center"
                     android:orientation="horizontal"
                     android:background="@drawable/bg_pill_inactive"
                     android:paddingStart="14dp"
                     android:paddingEnd="14dp"
-                    android:clickable="true"
                     app:layout_constraintTop_toTopOf="@id/btnDeviceConnect"
                     app:layout_constraintBottom_toBottomOf="@id/btnDeviceConnect"
                     app:layout_constraintStart_toEndOf="@id/btnDeviceConnect"
@@ -437,7 +524,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
                         android:text="Lời bài hát ↓"
-                        android:textColor="@color/white"
+                        android:textColor="@color/liquid_text_inactive"
                         android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -470,10 +557,10 @@
                 android:layout_marginEnd="20dp"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="32dp"
-                app:cardBackgroundColor="#242424"
+                app:cardBackgroundColor="@color/spotify_surface"
                 app:cardCornerRadius="20dp"
                 app:strokeWidth="1dp"
-                app:strokeColor="#331DB954"
+                app:strokeColor="@color/spotify_stroke"
                 android:elevation="6dp">
 
                 <LinearLayout
@@ -506,6 +593,17 @@
                             android:letterSpacing="0.08" />
 
                         <TextView
+                            android:id="@+id/tvLyricsStatusBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="12dp"
+                            android:text="♪ Đang dạo nhạc..."
+                            android:textColor="@color/spotify_green"
+                            android:textSize="12sp"
+                            android:textStyle="italic"
+                            android:visibility="gone" />
+
+                        <TextView
                             android:id="@+id/btnScrollBackToTop"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -520,9 +618,11 @@
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvLyricsScrollSection"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:minHeight="420dp"
-                        android:nestedScrollingEnabled="false"
+                        android:layout_height="480dp"
+                        android:nestedScrollingEnabled="true"
+                        android:clipToPadding="false"
+                        android:paddingTop="180dp"
+                        android:paddingBottom="240dp"
                         android:layout_marginTop="16dp"
                         android:overScrollMode="never" />
 
@@ -531,12 +631,12 @@
                         android:layout_height="1dp"
                         android:layout_marginTop="24dp"
                         android:layout_marginBottom="12dp"
-                        android:background="#1AFFFFFF" />
+                        android:background="@color/divider_color" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Lời bài hát được đồng bộ tự động từ Spotify Clone Lyrics Engine."
+                        android:text="Lời bài hát được đồng bộ theo nhịp bài nhạc."
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp" />
                 </LinearLayout>

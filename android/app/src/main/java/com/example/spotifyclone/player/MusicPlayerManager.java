@@ -8,19 +8,32 @@ import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
 import com.example.spotifyclone.SpotifyApp;
+import com.example.spotifyclone.data.model.ApiResponse;
+import com.example.spotifyclone.data.model.MoodFlowNextResponse;
+import com.example.spotifyclone.data.model.MoodFlowSessionRequest;
+import com.example.spotifyclone.data.model.MoodFlowSessionResponse;
 import com.example.spotifyclone.data.model.Song;
 import com.example.spotifyclone.data.remote.ApiClient;
+
+import androidx.annotation.NonNull;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MusicPlayerManager {
     private static final String TAG = "MusicPlayerManager";
@@ -41,11 +54,18 @@ public class MusicPlayerManager {
         default void onRepeatModeChanged(int repeatMode) {}
         default void onShuffleModeChanged(boolean isShuffle) {}
         default void onQueueChanged(List<Song> queue, int currentIndex) {}
+        default void onMoodFlowChanged(boolean isActive, String arc, String reason) {}
+        default void onPlaybackSpeedChanged(float speed) {}
     }
+
+    public static final float DEFAULT_PLAYBACK_SPEED = 1.0f;
+    public static final float[] SUPPORTED_PLAYBACK_SPEEDS = new float[]{0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f};
+    private float playbackSpeed = DEFAULT_PLAYBACK_SPEED;
+    private boolean sonicSpeedEngaged = false;
 
     private MediaPlayer mediaPlayer;
     private final Handler progressHandler = new Handler(Looper.getMainLooper());
-    private final List<PlayerListener> listeners = new ArrayList<>();
+    private final CopyOnWriteArrayList<PlayerListener> listeners = new CopyOnWriteArrayList<>();
 
     private Song currentSong = null;
     private String currentSongId = "";
@@ -54,6 +74,15 @@ public class MusicPlayerManager {
     private String currentCoverUrl = "";
     private String currentAudioUrl = "";
     private boolean isCurrentLiked = false;
+
+    // Mood Flow State
+    private boolean isMoodFlowMode = false;
+    private String currentSessionId = "";
+    private String currentArc = "steady";
+    private String currentReason = "";
+    private Song preloadedTrack = null;
+    private String preloadedReason = "";
+    private boolean isPreloading = false;
 
     // Audio Pipeline State Latch (prevents buffer underruns & crackles)
     private boolean isPrepared = false;
@@ -82,6 +111,15 @@ public class MusicPlayerManager {
                 for (PlayerListener listener : listeners) {
                     listener.onProgressUpdate(current, total);
                 }
+
+                // Mood Flow Smart Preload: Tải trước bài tiếp theo khi bài hiện tại còn khoảng 20s
+                if (isMoodFlowMode && preloadedTrack == null && !isPreloading && total > 0) {
+                    int remainingMs = total - current;
+                    if (remainingMs <= 20000 && remainingMs > 3000) {
+                        fetchNextTrackPreload();
+                    }
+                }
+
                 progressHandler.postDelayed(this, 500);
             }
         }
@@ -226,14 +264,23 @@ public class MusicPlayerManager {
                         .build()
         );
 
+        sonicSpeedEngaged = false;
         mediaPlayer.setOnPreparedListener(mp -> {
             isPreparing = false;
             isPrepared = true;
             if (requestAudioFocus()) {
-                mp.start();
+                if (Math.abs(playbackSpeed - DEFAULT_PLAYBACK_SPEED) >= 0.01f) {
+                    // Custom speed: setPlaybackParams cleanly sets rate and starts playback without double-start race
+                    applyPlaybackSpeedToPlayer(mp);
+                } else {
+                    // Normal 1.0x playback: start native hardware decoder directly (no Sonic buffer drift)
+                    if (!mp.isPlaying()) {
+                        mp.start();
+                    }
+                }
                 notifyPlaybackState(true);
                 startProgressUpdates();
-                Log.d(TAG, "Audio started playing smoothly: " + currentAudioUrl);
+                Log.d(TAG, "Audio started playing cleanly (speed=" + playbackSpeed + "x): " + currentAudioUrl);
             } else {
                 Log.d(TAG, "Audio focus not granted yet");
             }
@@ -250,21 +297,30 @@ public class MusicPlayerManager {
                 return;
             }
 
+            if (isMoodFlowMode) {
+                logListeningEvent("complete", getDuration() / 1000);
+                playNextMoodFlow();
+                return;
+            }
+
             if (repeatMode == REPEAT_ONE) {
                 // Loop same track
                 seekTo(0);
-                mp.start();
+                if (!mp.isPlaying()) {
+                    mp.start();
+                }
                 notifyPlaybackState(true);
                 startProgressUpdates();
             } else if (repeatMode == REPEAT_ALL) {
                 // Loop to next track or wrap to start
                 playNext();
             } else {
-                // REPEAT_OFF: Play next only if available
+                // REPEAT_OFF: Play next only if available, or trigger smart autoplay
                 if (currentIndex + 1 < currentQueue.size()) {
                     playNext();
                 } else {
-                    Log.d(TAG, "Reached end of queue with REPEAT_OFF");
+                    Log.d(TAG, "Reached end of queue with REPEAT_OFF, triggering smart autoplay");
+                    triggerSmartAutoplay();
                 }
             }
         });
@@ -353,6 +409,12 @@ public class MusicPlayerManager {
     }
 
     public void playNext() {
+        if (isMoodFlowMode) {
+            logListeningEvent("skip", getCurrentPosition() / 1000);
+            playNextMoodFlow();
+            return;
+        }
+
         if (currentQueue.isEmpty()) return;
 
         if (isShuffle && currentQueue.size() > 1) {
@@ -439,6 +501,11 @@ public class MusicPlayerManager {
         this.currentCoverUrl = coverUrl != null ? coverUrl : "";
         this.currentAudioUrl = audioUrl;
 
+        // Reset speed to normal 1.0x when playing a new track (synchronized with Web Admin)
+        this.playbackSpeed = DEFAULT_PLAYBACK_SPEED;
+        this.sonicSpeedEngaged = false;
+        notifyPlaybackSpeedChanged(DEFAULT_PLAYBACK_SPEED);
+
         notifyTrackChanged();
         recordHistory(currentSong);
         com.example.spotifyclone.service.MusicPlaybackService.start(com.example.spotifyclone.SpotifyApp.getAppContext());
@@ -469,7 +536,13 @@ public class MusicPlayerManager {
             stopProgressUpdates();
         } else {
             requestAudioFocus();
-            mediaPlayer.start();
+            if (Math.abs(playbackSpeed - DEFAULT_PLAYBACK_SPEED) >= 0.01f) {
+                applyPlaybackSpeedToPlayer(mediaPlayer);
+            } else {
+                if (!mediaPlayer.isPlaying()) {
+                    mediaPlayer.start();
+                }
+            }
             notifyPlaybackState(true);
             startProgressUpdates();
             com.example.spotifyclone.service.MusicPlaybackService.start(com.example.spotifyclone.SpotifyApp.getAppContext());
@@ -485,6 +558,8 @@ public class MusicPlayerManager {
             mediaPlayer.reset();
             isPrepared = false;
             isPreparing = false;
+            sonicSpeedEngaged = false;
+            playbackSpeed = DEFAULT_PLAYBACK_SPEED;
             currentSong = null;
             currentSongId = "";
             currentTitle = "";
@@ -501,7 +576,82 @@ public class MusicPlayerManager {
 
     public void seekTo(int positionMs) {
         if (mediaPlayer != null && isPrepared) {
-            mediaPlayer.seekTo(positionMs);
+            int duration = Math.max(0, mediaPlayer.getDuration());
+            int clamped = duration > 0 ? Math.max(0, Math.min(duration, positionMs)) : Math.max(0, positionMs);
+            mediaPlayer.seekTo(clamped);
+            for (PlayerListener l : listeners) {
+                l.onProgressUpdate(clamped, duration);
+            }
+        }
+    }
+
+    public void seekBy(int deltaMs) {
+        if (mediaPlayer != null && isPrepared) {
+            seekTo(mediaPlayer.getCurrentPosition() + deltaMs);
+        }
+    }
+
+    public float getPlaybackSpeed() {
+        return playbackSpeed;
+    }
+
+    public static float normalizeSpeedValue(float speed) {
+        if (Float.isNaN(speed) || Float.isInfinite(speed) || speed <= 0f) {
+            return DEFAULT_PLAYBACK_SPEED;
+        }
+        float closest = DEFAULT_PLAYBACK_SPEED;
+        float minDiff = Float.MAX_VALUE;
+        for (float opt : SUPPORTED_PLAYBACK_SPEEDS) {
+            float diff = Math.abs(opt - speed);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closest = opt;
+            }
+        }
+        return Math.abs(closest - DEFAULT_PLAYBACK_SPEED) < 0.01f ? DEFAULT_PLAYBACK_SPEED : closest;
+    }
+
+    public void setPlaybackSpeed(float speed) {
+        float normalized = normalizeSpeedValue(speed);
+        this.playbackSpeed = normalized;
+        if (mediaPlayer != null && isPrepared) {
+            applyPlaybackSpeedToPlayer(mediaPlayer);
+        }
+        notifyPlaybackSpeedChanged(normalized);
+    }
+
+    private void notifyPlaybackSpeedChanged(float speed) {
+        for (PlayerListener l : listeners) {
+            try {
+                l.onPlaybackSpeedChanged(speed);
+            } catch (Exception ignored) {}
+        }
+    }
+
+    public void resetPlaybackSpeed() {
+        setPlaybackSpeed(DEFAULT_PLAYBACK_SPEED);
+    }
+
+    private void applyPlaybackSpeedToPlayer(MediaPlayer mp) {
+        if (mp == null || android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M) {
+            return;
+        }
+        boolean isCustom = Math.abs(playbackSpeed - DEFAULT_PLAYBACK_SPEED) >= 0.01f;
+        // If neither custom nor previously engaged, native playback is already 1.0x
+        if (!isCustom && !sonicSpeedEngaged) {
+            return;
+        }
+        try {
+            android.media.PlaybackParams params = new android.media.PlaybackParams();
+            params.allowDefaults();
+            params.setSpeed(playbackSpeed);
+            params.setPitch(1.0f);
+            params.setAudioFallbackMode(android.media.PlaybackParams.AUDIO_FALLBACK_MODE_DEFAULT);
+            mp.setPlaybackParams(params);
+            sonicSpeedEngaged = isCustom;
+            Log.d(TAG, "Applied PlaybackParams cleanly (speed=" + playbackSpeed + "x, isCustom=" + isCustom + ")");
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to apply PlaybackParams: " + e.getMessage());
         }
     }
 
@@ -653,6 +803,7 @@ public class MusicPlayerManager {
                     listener.onProgressUpdate(getCurrentPosition(), getDuration());
                 }
             }
+            listener.onMoodFlowChanged(isMoodFlowMode, currentArc, currentReason);
         }
     }
 
@@ -744,6 +895,274 @@ public class MusicPlayerManager {
             });
         } catch (Exception e) {
             Log.e(TAG, "Error recording history", e);
+        }
+    }
+
+    private void triggerSmartAutoplay() {
+        if (currentSongId == null || currentSongId.isEmpty()) {
+            Log.d(TAG, "No current song ID to fetch autoplay recommendations");
+            return;
+        }
+        Log.d(TAG, "Triggering Smart Autoplay for songId: " + currentSongId);
+        ApiClient.getApiService().getSimilarSongs(currentSongId).enqueue(new Callback<ApiResponse<List<Song>>>() {
+            @Override
+            public void onResponse(@NonNull Call<ApiResponse<List<Song>>> call, @NonNull Response<ApiResponse<List<Song>>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
+                    List<Song> similar = response.body().getData();
+                    if (!similar.isEmpty()) {
+                        List<Song> candidates = new ArrayList<>();
+                        for (Song s : similar) {
+                            boolean exists = false;
+                            for (Song q : currentQueue) {
+                                if (q.getId() != null && q.getId().equals(s.getId())) {
+                                    exists = true;
+                                    break;
+                                }
+                            }
+                            if (!exists) {
+                                candidates.add(s);
+                            }
+                        }
+                        if (candidates.isEmpty()) {
+                            candidates.addAll(similar);
+                        }
+                        currentQueue.addAll(candidates);
+                        originalQueue.addAll(candidates);
+                        notifyQueueChanged();
+                        playNext();
+                        Log.d(TAG, "Smart Autoplay appended " + candidates.size() + " songs and continued playback.");
+                    } else {
+                        Log.d(TAG, "Smart Autoplay returned empty recommendation list");
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ApiResponse<List<Song>>> call, @NonNull Throwable t) {
+                Log.e(TAG, "Smart Autoplay request failed", t);
+            }
+        });
+    }
+
+    // =========================================================================
+    // MOOD FLOW ENGINE (AI NEXT TRACK RECOMMENDATION)
+    // =========================================================================
+
+    public boolean isMoodFlowMode() { return isMoodFlowMode; }
+    public String getCurrentSessionId() { return currentSessionId; }
+    public String getCurrentArc() { return currentArc; }
+    public String getCurrentReason() { return currentReason; }
+
+    public void startMoodFlow(String initialArc) {
+        this.isMoodFlowMode = true;
+        this.currentArc = (initialArc != null && !initialArc.isEmpty()) ? initialArc : "steady";
+        this.preloadedTrack = null;
+        this.preloadedReason = "";
+
+        String trackIdToStart = currentSongId;
+        Log.d(TAG, "Starting Mood Flow with trackId: " + trackIdToStart + ", arc: " + currentArc);
+
+        MoodFlowSessionRequest req = new MoodFlowSessionRequest(trackIdToStart, currentArc);
+        ApiClient.getApiService().createMoodFlowSession(req).enqueue(new Callback<ApiResponse<MoodFlowSessionResponse>>() {
+            @Override
+            public void onResponse(@NonNull Call<ApiResponse<MoodFlowSessionResponse>> call,
+                                   @NonNull Response<ApiResponse<MoodFlowSessionResponse>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
+                    currentSessionId = response.body().getData().getSessionId();
+                    Log.d(TAG, "Mood Flow session initialized successfully: " + currentSessionId);
+                    notifyMoodFlowChanged();
+                    fetchNextTrackPreload();
+                } else {
+                    Log.w(TAG, "Failed to start Mood Flow session, response code: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ApiResponse<MoodFlowSessionResponse>> call, @NonNull Throwable t) {
+                Log.e(TAG, "Failed to start Mood Flow session", t);
+            }
+        });
+    }
+
+    public void stopMoodFlow() {
+        this.isMoodFlowMode = false;
+        this.currentSessionId = "";
+        this.currentReason = "";
+        this.preloadedTrack = null;
+        this.preloadedReason = "";
+        Log.d(TAG, "Mood Flow stopped, returning to standard playlist playback.");
+        notifyMoodFlowChanged();
+    }
+
+    public void changeArc(String newArc) {
+        if (newArc == null || newArc.isEmpty()) return;
+        this.currentArc = newArc;
+        this.preloadedTrack = null;
+        this.preloadedReason = "";
+
+        if (isMoodFlowMode && currentSessionId != null && !currentSessionId.isEmpty()) {
+            Map<String, String> body = new HashMap<>();
+            body.put("arc", newArc);
+            ApiClient.getApiService().updateMoodFlowArc(currentSessionId, body).enqueue(new Callback<ApiResponse<Map<String, Object>>>() {
+                @Override
+                public void onResponse(@NonNull Call<ApiResponse<Map<String, Object>>> call,
+                                       @NonNull Response<ApiResponse<Map<String, Object>>> response) {
+                    Log.d(TAG, "Mood Flow Arc updated to " + newArc);
+                    fetchNextTrackPreload();
+                    notifyMoodFlowChanged();
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<ApiResponse<Map<String, Object>>> call, @NonNull Throwable t) {
+                    Log.e(TAG, "Failed to update Mood Flow arc", t);
+                }
+            });
+        } else {
+            notifyMoodFlowChanged();
+        }
+    }
+
+    public void likeCurrentTrack() {
+        if (currentSongId != null && !currentSongId.isEmpty()) {
+            logListeningEvent("like", getCurrentPosition() / 1000);
+            setCurrentSongLiked(true);
+        }
+    }
+
+    public void dislikeCurrentTrack() {
+        if (currentSongId != null && !currentSongId.isEmpty()) {
+            logListeningEvent("dislike", getCurrentPosition() / 1000);
+            setCurrentSongLiked(false);
+            if (isMoodFlowMode) {
+                playNext(); // Lập tức skip sang bài khác
+            }
+        }
+    }
+
+    public void logListeningEvent(String event, int positionSec) {
+        if (currentSongId == null || currentSongId.isEmpty()) return;
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("trackId", currentSongId);
+        body.put("event", event);
+        body.put("positionSec", Math.max(0, positionSec));
+        body.put("source", isMoodFlowMode ? "moodflow" : "browse");
+        if (isMoodFlowMode && currentSessionId != null && !currentSessionId.isEmpty()) {
+            body.put("sessionId", currentSessionId);
+        }
+
+        ApiClient.getApiService().logEvent(body).enqueue(new Callback<ApiResponse<Object>>() {
+            @Override
+            public void onResponse(@NonNull Call<ApiResponse<Object>> call, @NonNull Response<ApiResponse<Object>> response) {
+                Log.d(TAG, "Logged event [" + event + "] at " + positionSec + "s for track " + currentSongId);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ApiResponse<Object>> call, @NonNull Throwable t) {
+                Log.w(TAG, "Failed to log event: " + event, t);
+            }
+        });
+    }
+
+    private void playNextMoodFlow() {
+        if (preloadedTrack != null) {
+            Song nextTrack = preloadedTrack;
+            currentReason = preloadedReason != null ? preloadedReason : "";
+            preloadedTrack = null;
+            preloadedReason = "";
+            playMoodFlowSong(nextTrack);
+            fetchNextTrackPreload();
+        } else {
+            fetchNextTrackAndPlay();
+        }
+    }
+
+    private void fetchNextTrackPreload() {
+        if (!isMoodFlowMode || currentSessionId == null || currentSessionId.isEmpty() || isPreloading) return;
+        isPreloading = true;
+
+        ApiClient.getApiService().getMoodFlowNext(currentSessionId, false).enqueue(new Callback<ApiResponse<MoodFlowNextResponse>>() {
+            @Override
+            public void onResponse(@NonNull Call<ApiResponse<MoodFlowNextResponse>> call,
+                                   @NonNull Response<ApiResponse<MoodFlowNextResponse>> response) {
+                isPreloading = false;
+                if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
+                    MoodFlowNextResponse nextData = response.body().getData();
+                    preloadedTrack = nextData.getTrack();
+                    preloadedReason = nextData.getReason();
+                    Log.d(TAG, "Preloaded Mood Flow track: " + (preloadedTrack != null ? preloadedTrack.getTitle() : "null"));
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ApiResponse<MoodFlowNextResponse>> call, @NonNull Throwable t) {
+                isPreloading = false;
+                Log.w(TAG, "Failed to preload next Mood Flow track", t);
+            }
+        });
+    }
+
+    private void fetchNextTrackAndPlay() {
+        if (currentSessionId == null || currentSessionId.isEmpty()) {
+            startMoodFlow(currentArc);
+            return;
+        }
+
+        ApiClient.getApiService().getMoodFlowNext(currentSessionId, false).enqueue(new Callback<ApiResponse<MoodFlowNextResponse>>() {
+            @Override
+            public void onResponse(@NonNull Call<ApiResponse<MoodFlowNextResponse>> call,
+                                   @NonNull Response<ApiResponse<MoodFlowNextResponse>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
+                    MoodFlowNextResponse nextData = response.body().getData();
+                    Song song = nextData.getTrack();
+                    currentReason = nextData.getReason() != null ? nextData.getReason() : "";
+                    if (song != null) {
+                        playMoodFlowSong(song);
+                        fetchNextTrackPreload();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ApiResponse<MoodFlowNextResponse>> call, @NonNull Throwable t) {
+                Log.e(TAG, "Error fetching next Mood Flow track", t);
+            }
+        });
+    }
+
+    private void playMoodFlowSong(Song song) {
+        if (song == null) return;
+        this.currentSong = song;
+        this.currentSongId = song.getId() != null ? song.getId() : "";
+        this.isCurrentLiked = song.isLiked();
+
+        boolean found = false;
+        for (int i = 0; i < currentQueue.size(); i++) {
+            if (currentQueue.get(i).getId() != null && currentQueue.get(i).getId().equals(song.getId())) {
+                currentIndex = i;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            currentQueue.add(song);
+            originalQueue.add(song);
+            currentIndex = currentQueue.size() - 1;
+        }
+
+        notifyQueueChanged();
+        notifyMoodFlowChanged();
+        playAudio(
+                song.getTitle(),
+                song.getArtistName(),
+                ApiClient.resolveMediaUrl(song.getCoverImageUrl()),
+                ApiClient.resolveMediaUrl(song.getAudioUrl())
+        );
+    }
+
+    private void notifyMoodFlowChanged() {
+        for (PlayerListener listener : listeners) {
+            listener.onMoodFlowChanged(isMoodFlowMode, currentArc, currentReason);
         }
     }
 }

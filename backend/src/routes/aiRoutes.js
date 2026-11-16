@@ -5,7 +5,7 @@ const { authenticate, optionalAuth } = require('../middlewares/authMiddleware');
 const { aiLimiter } = require('../middlewares/rateLimiter');
 
 router.post('/chat', optionalAuth, aiLimiter, AiController.chat);
-router.post('/generate-playlist', authenticate, aiLimiter, AiController.generatePlaylist);
+router.post('/generate-playlist', optionalAuth, aiLimiter, AiController.generatePlaylist);
 router.get('/recommendations', optionalAuth, AiController.getRecommendations);
 router.get('/history', authenticate, AiController.getPromptHistory);
 

@@ -105,19 +105,20 @@
                 android:textSize="15sp" />
         </LinearLayout>
 
-        <!-- 2. Tải xuống nghe ngoại tuyến -->
+        <!-- 2. Chỉnh sửa playlist (Chỉ chủ sở hữu) -->
         <LinearLayout
-            android:id="@+id/itemPlaylistDownload"
+            android:id="@+id/itemPlaylistEdit"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:background="?attr/selectableItemBackground"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_check_circle"
+                android:src="@drawable/ic_edit"
                 app:tint="@color/text_primary" />
 
             <TextView
@@ -125,33 +126,35 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/spacing_16dp"
                 android:layout_weight="1"
-                android:text="Tải xuống nghe ngoại tuyến"
+                android:text="Chỉnh sửa danh sách phát"
                 android:textAppearance="@style/TextAppearance.Spotify.Body"
                 android:textSize="15sp" />
         </LinearLayout>
 
-        <!-- 3. Thêm vào hồ sơ cá nhân -->
+        <!-- 5. Xoá playlist (Chỉ chủ sở hữu) -->
         <LinearLayout
-            android:id="@+id/itemPlaylistAddToProfile"
+            android:id="@+id/itemPlaylistDelete"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:background="?attr/selectableItemBackground"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_person"
-                app:tint="@color/text_primary" />
+                android:src="@drawable/ic_delete"
+                app:tint="@color/spotify_error" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/spacing_16dp"
                 android:layout_weight="1"
-                android:text="Hiển thị trên hồ sơ của bạn"
+                android:text="Xóa danh sách phát"
                 android:textAppearance="@style/TextAppearance.Spotify.Body"
+                android:textColor="@color/spotify_error"
                 android:textSize="15sp" />
         </LinearLayout>
 

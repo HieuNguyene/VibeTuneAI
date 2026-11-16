@@ -96,11 +96,11 @@
         android:backgroundTint="@color/spotify_green"
         android:text="Phát toàn bộ album"
         android:textAllCaps="false"
-        android:textColor="@color/spotify_black"
+        android:textColor="@color/on_primary_accent"
         android:textSize="15sp"
         android:textStyle="bold"
         app:cornerRadius="24dp"
         app:icon="@drawable/ic_play_arrow"
-        app:iconTint="@color/spotify_black" />
+        app:iconTint="@color/on_primary_accent" />
 
 </LinearLayout>

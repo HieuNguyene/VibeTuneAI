@@ -17,6 +17,6 @@
 
     <item
         android:id="@+id/navigation_ai"
-        android:icon="@drawable/ic_sparkle_ai"
+        android:icon="@drawable/ic_assistant_wave"
         android:title="@string/nav_ai" />
 </menu>

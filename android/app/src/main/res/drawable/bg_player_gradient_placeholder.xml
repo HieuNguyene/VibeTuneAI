@@ -3,8 +3,8 @@
     android:shape="rectangle">
     <gradient
         android:angle="270"
-        android:startColor="#2D3848"
-        android:centerColor="#181D24"
+        android:startColor="@color/spotify_elevated"
+        android:centerColor="@color/spotify_surface"
         android:endColor="@color/spotify_black"
         android:type="linear" />
 </shape>
